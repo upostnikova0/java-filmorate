@@ -5,7 +5,6 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -47,7 +46,7 @@ public class FilmController {
         return films.values();
     }
 
-    private void validityCheck(@Valid Film film) {
+    private void validityCheck(Film film) {
         if (film.getName() == null || film.getName().isBlank()) {
             log.debug("Название фильма не может быть пустым.");
             throw new ValidationException("Название фильма не может быть пустым.");

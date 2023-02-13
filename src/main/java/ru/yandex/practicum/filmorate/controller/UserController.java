@@ -7,7 +7,6 @@ import ru.yandex.practicum.filmorate.exception.UserAlreadyExistException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
@@ -64,7 +63,7 @@ public class UserController {
         return users.values();
     }
 
-    private ResponseEntity<String> validityCheck(@Valid User user) {
+    private ResponseEntity<String> validityCheck(User user) {
         if (user.getEmail() == null || user.getEmail().isBlank() || !user.getEmail().contains("@")) {
             log.debug("Электронная почта не может быть пустой и должна содержать символ @.");
             throw new ValidationException("Электронная почта не может быть пустой и должна содержать символ @.");
