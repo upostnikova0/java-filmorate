@@ -1,8 +1,10 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.exception.UserAlreadyExistException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -30,7 +32,7 @@ public class UserController {
 
             if (user.getEmail().equals(temp.getEmail())) {
                 log.debug("Пользователь с электронной почтой " + user.getEmail() + " уже зарегистрирован.");
-                throw new UserAlreadyExistException(
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                         "Пользователь с электронной почтой " + user.getEmail() + " уже зарегистрирован."
                 );
             }
@@ -46,10 +48,8 @@ public class UserController {
         validityCheck(user);
 
         if (!users.containsKey(user.getId())) {
-            System.out.println(users.size());
-            System.out.println(user.getId());
             log.debug("Пользователя с таким ID не существует");
-            throw new ValidationException("Пользователя с таким ID не существует");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователя с таким ID не существует");
         }
 
         log.info("Обновлен пользователь c ID: " + user.getId());
