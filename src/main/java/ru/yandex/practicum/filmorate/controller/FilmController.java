@@ -1,10 +1,13 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import javax.validation.Valid;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -16,7 +19,7 @@ public class FilmController {
     protected final Map<Integer, Film> films = new HashMap<>();
 
     @PostMapping
-    public Film add(@RequestBody Film film) {
+    public Film add(@Valid @RequestBody Film film) {
         validityCheck(film);
 
         film.setId(counter++);
@@ -27,7 +30,7 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film update(@RequestBody Film film) {
+    public Film update(@Valid @RequestBody Film film) {
         validityCheck(film);
 
         if (!films.containsKey(film.getId())) {
@@ -46,7 +49,7 @@ public class FilmController {
         return films.values();
     }
 
-    private void validityCheck(Film film) {
+    private ResponseEntity<?> validityCheck(Film film) {
         if (film.getName() == null || film.getName().isBlank()) {
             log.debug("Название фильма не может быть пустым.");
             throw new ValidationException("Название фильма не может быть пустым.");
@@ -68,5 +71,6 @@ public class FilmController {
             log.debug("Продолжительность фильма должна быть положительной.");
             throw new ValidationException("Продолжительность фильма должна быть положительной.");
         }
+        return ResponseEntity.ok(film);
     }
 }

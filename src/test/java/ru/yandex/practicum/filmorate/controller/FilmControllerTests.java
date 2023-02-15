@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import java.time.Duration;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,13 +25,13 @@ public class FilmControllerTests extends FilmController{
         film1.setName("Film Name");
         film1.setDescription("Film Description");
         film1.setReleaseDate(LocalDate.of(2020,10,15));
-        film1.setDuration(1200);
+        film1.setDuration(180L);
 
         film2 = new Film();
         film2.setName("Second Film Name");
         film2.setDescription("Second Film Description");
         film2.setReleaseDate(LocalDate.of(2022,10,15));
-        film2.setDuration(500);
+        film2.setDuration(120L);
     }
 
     @Test
@@ -71,7 +72,7 @@ public class FilmControllerTests extends FilmController{
     @Test
     public void add_shouldReturnExceptionWhenDurationIsNegative() {
         createValidFilm();
-        film1.setDuration(-1);
+        film1.setDuration(-1L);
         ValidationException thrown = Assertions.assertThrows(ValidationException.class, () -> filmController.add(film1));
 
         assertEquals("Продолжительность фильма должна быть положительной.", thrown.getMessage());
@@ -126,7 +127,7 @@ public class FilmControllerTests extends FilmController{
         createValidFilm();
         filmController.add(film1);
 
-        film1.setDuration(-1);
+        film1.setDuration(-10L);
         ValidationException thrown = Assertions.assertThrows(ValidationException.class, () -> filmController.update(film1));
 
         assertEquals("Продолжительность фильма должна быть положительной.", thrown.getMessage());

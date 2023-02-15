@@ -8,6 +8,7 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
+import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
@@ -21,7 +22,7 @@ public class UserController {
     protected final Map<Integer, User> users = new HashMap<>();
 
     @PostMapping
-    public User create(@RequestBody User user) {
+    public User create(@Valid @RequestBody User user) {
         validityCheck(user);
 
         user.setId(counter++);
@@ -43,7 +44,7 @@ public class UserController {
     }
 
     @PutMapping
-    public User update(@RequestBody User user) {
+    public User update(@Valid @RequestBody User user) {
         validityCheck(user);
 
         if (!users.containsKey(user.getId())) {
