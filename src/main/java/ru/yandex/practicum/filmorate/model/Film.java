@@ -7,6 +7,7 @@ import org.hibernate.validator.constraints.Length;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
+import javax.validation.constraints.Size;
 import java.time.Duration;
 import java.time.LocalDate;
 
@@ -18,7 +19,7 @@ public class Film {
     @NotBlank
     private String name;
 
-    @Length (max = 200)
+    @Size(max = 200)
     private String description;
     private LocalDate releaseDate;
 
