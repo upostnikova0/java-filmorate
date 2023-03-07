@@ -13,8 +13,8 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class FilmService {
-    private final FilmStorage filmStorage;
-    private final UserService userService;
+    protected final FilmStorage filmStorage;
+    protected final UserService userService;
 
     @Autowired
     public FilmService(FilmStorage filmStorage, UserService userService) {

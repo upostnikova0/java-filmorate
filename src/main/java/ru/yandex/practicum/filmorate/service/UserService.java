@@ -13,7 +13,7 @@ import java.util.Set;
 @Service
 @Slf4j
 public class UserService {
-    private final UserStorage userStorage;
+    protected final UserStorage userStorage;
 
     @Autowired
     public UserService(UserStorage userStorage) {
