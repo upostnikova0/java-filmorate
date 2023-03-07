@@ -2,10 +2,13 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -21,6 +24,7 @@ public class UserService {
     }
 
     public User create(User user) {
+        checkValidity(user);
         return userStorage.add(user);
     }
 
@@ -29,6 +33,7 @@ public class UserService {
     }
 
     public User update(User user) {
+        checkValidity(user);
         return userStorage.update(user);
     }
 
@@ -65,5 +70,27 @@ public class UserService {
                 .filter(friend.getFriends()::contains)
                 .forEach(x -> common.add(getUser(x)));
         return common;
+    }
+
+    private void checkValidity(User user) {
+        if (user.getEmail() == null || user.getEmail().isBlank() || !user.getEmail().contains("@")) {
+            log.warn("Электронная почта не может быть пустой и должна содержать символ @.");
+            throw new ValidationException("Электронная почта не может быть пустой и должна содержать символ @.");
+        }
+
+        if (user.getLogin() == null || user.getLogin().isBlank()) {
+            log.warn("Логин не может быть пустым и содержать пробелы.");
+            throw new ValidationException("Логин не может быть пустым и содержать пробелы.");
+        }
+
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
+
+        if(user.getBirthday().isAfter(LocalDate.now())) {
+            log.warn("Дата рождения не может быть в будущем.");
+            throw new ValidationException("Дата рождения не может быть в будущем.");
+        }
+        ResponseEntity.ok("valid");
     }
 }

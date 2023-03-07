@@ -1,14 +1,10 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
-import java.time.LocalDate;
-import java.time.Month;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,8 +18,6 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film add(Film film) {
-        checkValidity(film);
-
         film.setId(getNextId());
 
         log.info("Добавлен новый фильм с ID: " + film.getId() + ".");
@@ -39,8 +33,6 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film update(Film film) {
-        checkValidity(film);
-
         if (!films.containsKey(film.getId())) {
             log.warn("Фильма с таким ID не существует");
             throw new FilmNotFoundException("id");
@@ -70,30 +62,5 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     private static Long getNextId() {
         return globalId++;
-    }
-
-    private void checkValidity(Film film) {
-        if (film.getName() == null || film.getName().isBlank()) {
-            log.warn("Название фильма не может быть пустым.");
-            throw new ValidationException("name");
-        }
-
-        int maxDescriptionLength = 200;
-        if (film.getDescription().length() > maxDescriptionLength) {
-            log.warn("Длина описания должна быть не больше 200 символов.");
-            throw new ValidationException("description");
-        }
-
-        LocalDate earliestReleaseDate = LocalDate.of(1895, Month.DECEMBER,28);
-        if (film.getReleaseDate().isBefore(earliestReleaseDate)) {
-            log.warn("Дата релиза — не раньше 28 декабря 1895 года.");
-            throw new ValidationException("release date");
-        }
-
-        if (film.getDuration() < 0) {
-            log.warn("Продолжительность фильма должна быть положительной.");
-            throw new ValidationException("duration");
-        }
-        ResponseEntity.ok(film);
     }
 }
