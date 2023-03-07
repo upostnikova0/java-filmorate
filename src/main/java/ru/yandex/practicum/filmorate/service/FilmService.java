@@ -50,11 +50,10 @@ public class FilmService {
     }
 
     public Set<Film> getTopFilms(Integer count) {
-        Set<Film> topFilms = new HashSet<>(filmStorage.findAll()).
+        return new HashSet<>(filmStorage.findAll()).
                 stream().
                 sorted(Comparator.comparing(Film::likesAmount).reversed()).
                 limit(count).
                 collect(Collectors.toSet());
-        return topFilms;
     }
 }

@@ -79,7 +79,7 @@ public class InMemoryUserStorage implements UserStorage {
         return globalId++;
     }
 
-    private ResponseEntity<String> checkValidity(User user) {
+    private void checkValidity(User user) {
         if (user.getEmail() == null || user.getEmail().isBlank() || !user.getEmail().contains("@")) {
             log.warn("Электронная почта не может быть пустой и должна содержать символ @.");
             throw new ValidationException("Электронная почта не может быть пустой и должна содержать символ @.");
@@ -98,6 +98,6 @@ public class InMemoryUserStorage implements UserStorage {
             log.warn("Дата рождения не может быть в будущем.");
             throw new ValidationException("Дата рождения не может быть в будущем.");
         }
-        return ResponseEntity.ok("valid");
+        ResponseEntity.ok("valid");
     }
 }

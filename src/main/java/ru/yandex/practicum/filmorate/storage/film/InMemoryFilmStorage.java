@@ -72,7 +72,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         return globalId++;
     }
 
-    private ResponseEntity<?> checkValidity(Film film) {
+    private void checkValidity(Film film) {
         if (film.getName() == null || film.getName().isBlank()) {
             log.warn("Название фильма не может быть пустым.");
             throw new ValidationException("name");
@@ -94,6 +94,6 @@ public class InMemoryFilmStorage implements FilmStorage {
             log.warn("Продолжительность фильма должна быть положительной.");
             throw new ValidationException("duration");
         }
-        return ResponseEntity.ok(film);
+        ResponseEntity.ok(film);
     }
 }
