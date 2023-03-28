@@ -28,6 +28,7 @@ public class ErrorHandler {
     public Map<String, String> handleUserNotFoundException(final UserNotFoundException e) {
         return Map.of("Incorrect data", e.getMessage());
     }
+
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, String> handleGenreNotFoundException(final GenreNotFoundException e) {
@@ -45,5 +46,4 @@ public class ErrorHandler {
     public Map<String, String> handleThrowable(final Throwable e) {
         return Map.of("Incorrect data", e.getMessage());
     }
-
 }
