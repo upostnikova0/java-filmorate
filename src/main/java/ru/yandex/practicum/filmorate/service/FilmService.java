@@ -49,7 +49,7 @@ public class FilmService {
 
         Film newFilm = filmStorage.add(film);
 
-        if(film.getGenres() != null) {
+        if (film.getGenres() != null) {
             for (Genre genre : film.getGenres()) {
                 filmGenresStorage.addGenre(film.getId(), genre.getId());
             }
