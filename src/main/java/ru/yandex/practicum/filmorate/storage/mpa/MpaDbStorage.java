@@ -14,7 +14,7 @@ import java.util.List;
 public class MpaDbStorage implements MpaStorage {
     private final JdbcTemplate jdbcTemplate;
 
-    public MpaDbStorage (JdbcTemplate jdbcTemplate) {
+    public MpaDbStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
