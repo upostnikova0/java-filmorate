@@ -92,7 +92,7 @@ public class UserService {
             user.setName(user.getLogin());
         }
 
-        if(user.getBirthday().isAfter(LocalDate.now())) {
+        if (user.getBirthday().isAfter(LocalDate.now())) {
             log.warn("Дата рождения не может быть в будущем.");
             throw new ValidationException("Дата рождения не может быть в будущем.");
         }
