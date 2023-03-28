@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
 import java.util.*;
+
 @Slf4j
 @RestController
 @RequestMapping("/films")
@@ -35,7 +36,7 @@ public class FilmController {
     }
 
     @GetMapping("/{filmId}")
-    public Film getFilm(@Valid @PathVariable("filmId") Long filmId){
+    public Film getFilm(@Valid @PathVariable("filmId") Long filmId) {
         return filmService.findFilm(filmId);
     }
 
