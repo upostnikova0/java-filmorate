@@ -7,11 +7,10 @@ import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
 import java.util.Collection;
-import java.util.Set;
 
+@Slf4j
 @RestController
 @RequestMapping("/users")
-@Slf4j
 public class UserController {
     private final UserService userService;
 
@@ -26,7 +25,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     public User getUser(@Valid @RequestBody @PathVariable("id") long id) {
-        return userService.getUser(id);
+        return userService.findUser(id);
     }
 
     @PutMapping
@@ -50,12 +49,12 @@ public class UserController {
     }
 
     @GetMapping("/{id}/friends")
-    public Set<User> getAllFriends(@PathVariable("id") Long id) {
+    public Collection<User> getAllFriends(@PathVariable("id") Long id) {
         return userService.getAllFriends(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public Set<User> getCommonFriends(@PathVariable("id") Long id, @PathVariable("otherId") Long friendId) {
-        return userService.getCommonFriends(id, friendId);
+    public Collection<User> getCommonFriends(@PathVariable("id") Long userId, @PathVariable("otherId") Long friendId) {
+        return userService.getCommonFriends(userId, friendId);
     }
 }

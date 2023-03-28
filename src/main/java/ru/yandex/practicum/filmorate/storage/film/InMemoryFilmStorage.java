@@ -26,13 +26,23 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Film remove(Film film) {
-        films.remove(film.getId());
-        return film;
+    public Film findFilm(long filmId) {
+        if (films.containsKey(filmId)) {
+            log.info("Найден фильм : " + films.get(filmId));
+            return films.get(filmId);
+        } else {
+            throw new FilmNotFoundException(String.format("Фильм с ID %d не найден.", filmId));
+        }
     }
 
     @Override
-    public Film update(Film film) {
+    public Collection<Film> findAll() {
+        log.info("Количество фильмов: " + films.size() + ".");
+        return films.values();
+    }
+
+    @Override
+    public Film update(Film film, int ratingId) {
         if (!films.containsKey(film.getId())) {
             log.warn("Фильма с таким ID не существует");
             throw new FilmNotFoundException("id");
@@ -45,19 +55,9 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public Collection<Film> findAll() {
-        log.info("Количество фильмов: " + films.size() + ".");
-        return films.values();
-    }
-
-    @Override
-    public Film findFilm(long id) {
-        if (films.containsKey(id)) {
-            log.info("Найден фильм : " + films.get(id));
-            return films.get(id);
-        } else {
-            throw new FilmNotFoundException(String.format("Фильм с ID %d не найден.", id));
-        }
+    public Film remove(Film film) {
+        films.remove(film.getId());
+        return film;
     }
 
     private static Long getNextId() {
