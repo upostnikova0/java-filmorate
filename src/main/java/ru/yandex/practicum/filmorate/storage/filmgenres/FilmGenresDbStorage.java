@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.storage.film_genres;
+package ru.yandex.practicum.filmorate.storage.filmgenres;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -7,8 +7,7 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.GenreNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
-
-import java.util.Collection;
+import java.util.*;
 
 @Slf4j
 @Component("filmGenresDbStorage")
@@ -57,6 +56,19 @@ public class FilmGenresDbStorage implements FilmGenresStorage {
                 rs.getString("genre_name")),
                 filmId
         );
+    }
+
+    @Override
+    public List<Map<Long, Genre>> findAll() {
+        String sql = "SELECT * FROM FILM_GENRES JOIN GENRES " +
+                "ON FILM_GENRES.GENRE_ID = GENRES.GENRE_ID ";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+                    Map<Long, Genre> result = new LinkedHashMap<>();
+                    result.put(rs.getLong("film_id"),
+                            new Genre(rs.getInt("genre_id"),
+                                    rs.getString("genre_name")));
+                    return result;
+                });
     }
 
     @Override

@@ -10,4 +10,6 @@ public interface FriendStorage {
     Collection<User> findAll(long id);
 
     void remove(long id, long friendId);
+
+    Collection<Long> getCommonFriends(Long userId, Long friendId);
 }

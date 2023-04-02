@@ -37,9 +37,8 @@ public class GenreDbStorage implements GenreStorage {
         String sql = "SELECT * FROM GENRES";
         return jdbcTemplate.query(sql, (rs, rowNum) -> new Genre(
                                 rs.getInt("genre_id"),
-                                rs.getString("genre_name")
-                        )
-                ).stream()
+                                rs.getString("genre_name")))
+                .stream()
                 .sorted(Comparator.comparing(Genre::getId))
                 .collect(Collectors.toList());
     }

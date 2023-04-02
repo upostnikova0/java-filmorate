@@ -32,10 +32,6 @@ public class Film implements Comparable<Film> {
         return this.likes.size() - o.getLikes().size();
     }
 
-    public int likesAmount() {
-        return likes.size();
-    }
-
     public Map<String, Object> toMap() {
         Map<String, Object> values = new HashMap<>();
         values.put("name", name);

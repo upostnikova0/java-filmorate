@@ -8,9 +8,8 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
-import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.film_genres.FilmGenresStorage;
+import ru.yandex.practicum.filmorate.storage.filmgenres.FilmGenresStorage;
 import ru.yandex.practicum.filmorate.storage.likes.LikesStorage;
 
 import java.time.LocalDate;
@@ -54,27 +53,35 @@ public class FilmService {
                 filmGenresStorage.addGenre(film.getId(), genre.getId());
             }
         }
+        newFilm.setGenres(new ArrayList<>(filmGenresStorage.findAll(newFilm.getId())));
         return newFilm;
     }
 
     public Collection<Film> findAll() {
-        Collection<Film> allFilms = filmStorage.findAll();
-        for (Film film : allFilms) {
-            film.setMpa(mpaService.getMpa(film.getMpa().getId()));
-            film.setGenres(new ArrayList<>(filmGenresStorage.findAll(film.getId())));
-            film.setLikes(new HashSet<>(likesStorage.findAll(film.getId())));
+        Map<Long, Film> allFilms = filmStorage.findAll().stream().collect(Collectors.toMap(Film::getId, film -> film));
+        List<Map<Long, Genre>> allGenres = filmGenresStorage.findAll();
+
+        if (!allGenres.isEmpty()) {
+            for (Map<Long, Genre> map : allGenres) {
+                for (Long filmId : map.keySet()) {
+                    allFilms.get(filmId).getGenres().add(map.get(filmId));
+                }
+            }
         }
-        return allFilms;
+
+        return allFilms.values();
     }
 
     public Film findFilm(long filmId) {
         Film film = filmStorage.findFilm(filmId);
         Collection<Genre> genres = filmGenresStorage.findAll(filmId);
-        Collection<Long> likes = likesStorage.findAll(filmId);
-        Mpa mpa = mpaService.getMpa(film.getMpa().getId());
-        film.setMpa(mpaService.getMpa(mpa.getId()));
-        film.setGenres(new ArrayList<>(genres));
-        film.setLikes(new HashSet<>(likes));
+
+        if (!genres.isEmpty()) {
+            for (Genre genre : genres) {
+                film.getGenres().add(genre);
+            }
+        }
+
         return film;
     }
 
@@ -102,8 +109,8 @@ public class FilmService {
         int mpaId = film.getMpa().getId();
         filmStorage.update(film, mpaId);
 
-        Mpa mpa = mpaService.getMpa(mpaId);
-        film.getMpa().setName(mpa.getName());
+        film = filmStorage.findFilm(film.getId());
+        film.setGenres(new ArrayList<>(filmGenresStorage.findAll(film.getId())));
 
         return film;
     }
@@ -183,7 +190,7 @@ public class FilmService {
             throw new ValidationException("description");
         }
 
-        LocalDate earliestReleaseDate = LocalDate.of(1895, Month.DECEMBER,28);
+        LocalDate earliestReleaseDate = LocalDate.of(1895, Month.DECEMBER, 28);
         if (film.getReleaseDate().isBefore(earliestReleaseDate)) {
             log.warn("Дата релиза — не раньше 28 декабря 1895 года.");
             throw new ValidationException("release date");

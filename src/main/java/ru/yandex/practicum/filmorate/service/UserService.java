@@ -11,8 +11,9 @@ import ru.yandex.practicum.filmorate.storage.friends.FriendStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -45,12 +46,6 @@ public class UserService {
         return userStorage.update(user);
     }
 
-    public void removeUser(User user) {
-        userStorage.findUser(user.getId());
-        userStorage.remove(user);
-        friendStorage.remove(user.getId(), user.getId());
-    }
-
     public void addFriend(long userId, long friendId) {
         userStorage.findUser(userId);
         userStorage.findUser(friendId);
@@ -71,10 +66,21 @@ public class UserService {
     public Collection<User> getCommonFriends(long id, long friendId) {
         userStorage.findUser(id);
         userStorage.findUser(friendId);
-        return friendStorage.findAll(id)
-                .stream()
-                .filter(x -> friendStorage.findAll(friendId).contains(x))
-                .collect(Collectors.toList());
+
+        Collection<Long> commonFriendsId = friendStorage.getCommonFriends(id, friendId);
+        Collection<User> users = userStorage.findAll();
+
+        List<User> commonFriends = new ArrayList<>();
+
+        for (Long userId : commonFriendsId) {
+            for (User user : users) {
+                if (user.getId().equals(userId)) {
+                    commonFriends.add(user);
+                }
+            }
+        }
+
+        return commonFriends;
     }
 
     private void checkValidity(User user) {

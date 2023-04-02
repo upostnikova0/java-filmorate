@@ -3,12 +3,14 @@ package ru.yandex.practicum.filmorate.storage.film;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Mpa;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
 
 @Slf4j
@@ -33,36 +35,22 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Film findFilm(long filmId) {
-        SqlRowSet filmRows = jdbcTemplate.queryForRowSet("SELECT * FROM FILMS WHERE film_id = ?", filmId);
-        if (filmRows.next()) {
-            Film film = Film.builder()
-                    .id(filmRows.getLong("film_id"))
-                    .name(filmRows.getString("name"))
-                    .description(filmRows.getString("description"))
-                    .releaseDate(filmRows.getDate("release_date").toLocalDate())
-                    .duration(filmRows.getLong("duration"))
-                    .mpa(Mpa.builder().id(filmRows.getInt("mpa_rating_id")).build())
-                    .build();
-            log.info("Найден фильм = {}", film);
-            return film;
-        } else {
-            log.info(String.format("Фильм с ID %d не найден.", filmId));
-            throw new FilmNotFoundException(String.format("Фильм с ID %d не найден", filmId));
+        String sql = "SELECT * FROM FILMS " +
+                "JOIN MPA_RATING M ON M.MPA_RATING_ID = FILMS.MPA_RATING_ID WHERE film_id = ?";
+
+        Film film = jdbcTemplate.query(sql, FilmDbStorage::filmMapper, filmId).stream().findFirst().orElse(null);
+        if (film == null) {
+            throw new FilmNotFoundException("Фильм с ID " + filmId + " не найден.");
         }
+
+        return film;
     }
 
     @Override
     public Collection<Film> findAll() {
-        String sql = "SELECT * FROM FILMS ";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> Film.builder()
-                        .id(rs.getLong("film_id"))
-                        .name(rs.getString("name"))
-                        .description(rs.getString("description"))
-                        .releaseDate(rs.getDate("release_date").toLocalDate())
-                        .duration(rs.getLong("duration"))
-                        .mpa(Mpa.builder().id(rs.getInt("mpa_rating_id")).build())
-                .build()
-        );
+        String sql = "SELECT * FROM FILMS " +
+                "JOIN MPA_RATING M ON M.MPA_RATING_ID = FILMS.MPA_RATING_ID";
+        return jdbcTemplate.query(sql, FilmDbStorage::filmMapper);
     }
 
     @Override
@@ -88,5 +76,20 @@ public class FilmDbStorage implements FilmStorage {
         String sql = "DELETE FROM FILMS WHERE film_id = ?";
         jdbcTemplate.update(sql, film.getId());
         return film;
+    }
+
+    public static Film filmMapper(ResultSet rs, int rowNum) throws SQLException {
+        return Film.builder()
+                .id(rs.getLong("film_id"))
+                .name(rs.getString("name"))
+                .description(rs.getString("description"))
+                .releaseDate(rs.getDate("release_date").toLocalDate())
+                .duration(rs.getLong("duration"))
+                .mpa(Mpa.builder()
+                        .id(rs.getInt("mpa_rating_id"))
+                        .name(rs.getString("mpa_rating_name"))
+                        .build())
+                .genres(new ArrayList<>())
+                .build();
     }
 }

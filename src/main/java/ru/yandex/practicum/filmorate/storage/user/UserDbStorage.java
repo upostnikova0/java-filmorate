@@ -3,11 +3,12 @@ package ru.yandex.practicum.filmorate.storage.user;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 
@@ -33,34 +34,20 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User findUser(long id) {
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet("SELECT * FROM USERS WHERE user_id = ?", id);
-        if (userRows.first()) {
-            User user = new User(
-                    userRows.getLong("user_id"),
-                    userRows.getString("email"),
-                    userRows.getString("login"),
-                    userRows.getString("name"),
-                    userRows.getDate("birthday").toLocalDate()
-            );
-            log.info(String.format("Найден пользователь с ID %d", id));
-            return user;
-        } else {
-            log.info(String.format("Пользователь с ID %d не найден.", id));
-            throw new UserNotFoundException(String.format("Пользователь с ID %d не найден.", id));
+        String sql = "SELECT * FROM USERS WHERE user_id = ?";
+        User user = jdbcTemplate.query(sql, UserDbStorage::userMapper, id).stream().findFirst().orElse(null);
+        if (user == null) {
+            throw new UserNotFoundException("Пользователь с ID " + id + " не найден.");
         }
+
+        return user;
     }
 
     @Override
     public Collection<User> findAll() {
         String sql = "SELECT * FROM USERS ";
         return new LinkedHashSet<>(
-                jdbcTemplate.query(sql, (rs, rowNum) -> new User(
-                        rs.getLong("user_id"),
-                        rs.getString("email"),
-                        rs.getString("login"),
-                        rs.getString("name"),
-                        rs.getDate("birthday").toLocalDate())
-                )
+                jdbcTemplate.query(sql, UserDbStorage::userMapper)
         );
     }
 
@@ -84,5 +71,15 @@ public class UserDbStorage implements UserStorage {
         String sql = "DELETE FROM USERS WHERE user_id = ?";
         log.info("Удален пользователь {}.", user);
         jdbcTemplate.update(sql, user.getId());
+    }
+
+    public static User userMapper(ResultSet rs, int rowNum) throws SQLException {
+        return User.builder()
+                .id(rs.getLong("user_id"))
+                .email(rs.getString("email"))
+                .login(rs.getString("login"))
+                .name(rs.getString("name"))
+                .birthday(rs.getDate("birthday").toLocalDate())
+                .build();
     }
 }

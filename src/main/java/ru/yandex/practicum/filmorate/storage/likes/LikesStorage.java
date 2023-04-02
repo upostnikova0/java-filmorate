@@ -8,6 +8,7 @@ public interface LikesStorage {
     void remove(long filmId, long userId);
 
     Collection<Long> findAll(long filmId);
+    Collection<Long> findAll();
 
     Collection<Long> getPopular(int count);
 }

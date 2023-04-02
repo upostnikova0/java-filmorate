@@ -40,6 +40,17 @@ public class LikesDbStorage implements LikesStorage {
         return likes;
     }
 
+    @Override
+    public Collection<Long> findAll() {
+        String sql = "SELECT * FROM LIKES";
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(sql);
+        Set<Long> likes = new LinkedHashSet<>();
+            if (userRows.next()) {
+                likes.add(userRows.getLong("user_id"));
+            }
+        return likes;
+    }
+
     public Collection<Long> getPopular(int count) {
         String sql = "SELECT FILM_ID, FROM LIKES " +
                 "GROUP BY FILM_ID " +
@@ -48,4 +59,8 @@ public class LikesDbStorage implements LikesStorage {
         return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getLong("film_id"), count);
     }
 
+    public void removeAll(long id) {
+        String sql = "DELETE FROM LIKES WHERE film_id = ?";
+        jdbcTemplate.update(sql, id);
+    }
 }
