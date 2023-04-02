@@ -1,12 +1,16 @@
 package ru.yandex.practicum.filmorate.storage.filmgenres;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.GenreNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
+
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.*;
 
 @Slf4j
@@ -23,6 +27,23 @@ public class FilmGenresDbStorage implements FilmGenresStorage {
         String sql = "INSERT INTO FILM_GENRES (film_id, genre_id) VALUES (?, ?)";
         jdbcTemplate.update(sql, filmId, genreId);
         log.info("Фильму с ID {} добавлен новый жанр с ID {}", filmId, genreId);
+    }
+
+    @Override
+    public void addGenreList(long filmId, Collection<Genre> genres) {
+        final ArrayList<Genre> genreList = new ArrayList<>(genres);
+        jdbcTemplate.batchUpdate(
+                "insert into FILM_GENRES (FILM_ID, GENRE_ID) values (?, ?)",
+                new BatchPreparedStatementSetter() {
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setLong(1, filmId);
+                        ps.setLong(2, genreList.get(i).getId());
+                    }
+
+                    public int getBatchSize() {
+                        return genreList.size();
+                    }
+                });
     }
 
     @Override

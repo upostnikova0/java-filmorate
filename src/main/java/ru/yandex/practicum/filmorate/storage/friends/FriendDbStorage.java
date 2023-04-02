@@ -49,7 +49,6 @@ public class FriendDbStorage implements FriendStorage {
                 "AND FRIEND_ID IN (SELECT FRIEND_ID FROM USER_FRIENDS WHERE USER_ID = ?)";
 
         Collection<Long> commonFriendsId = jdbcTemplate.queryForList(sql, Long.class, userId, friendId);
-        System.out.println(commonFriendsId);
 
         return commonFriendsId;
     }
