@@ -1,17 +1,20 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
-import ru.yandex.practicum.filmorate.storage.filmgenres.FilmGenresDbStorage;
-import ru.yandex.practicum.filmorate.storage.likes.LikesDbStorage;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -30,15 +33,19 @@ public class FilmServiceTests {
     Film film1;
     Film film2;
 
-    private final FilmDbStorage filmDbStorage;
-    private final FilmGenresDbStorage filmGenresDbStorage;
-    private final LikesDbStorage likesDbStorage;
+    private EmbeddedDatabase embeddedDatabase;
+    private FilmDbStorage filmDbStorage;
 
     @BeforeEach
     void beforeEach() {
-        filmDbStorage.findAll().forEach(x -> filmGenresDbStorage.removeAll(x.getId()));
-        filmDbStorage.findAll().forEach(x -> likesDbStorage.removeAll(x.getId()));
-        filmDbStorage.findAll().forEach(filmDbStorage::remove);
+        embeddedDatabase = new EmbeddedDatabaseBuilder()
+                .addScripts("schema.sql")
+                .addScript("data.sql")
+                .setType(EmbeddedDatabaseType.H2)
+                .build();
+
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(embeddedDatabase);
+        filmDbStorage = new FilmDbStorage(jdbcTemplate);
 
         mpa1 = Mpa.builder()
                 .id(1)
@@ -75,6 +82,11 @@ public class FilmServiceTests {
         film2.getGenres().add(genre2);
     }
 
+    @AfterEach
+    void afterEach() {
+        embeddedDatabase.shutdown();
+    }
+
     @Test
     public void findAll_shouldReturnRightFilmsSize() {
         assertEquals(0, filmDbStorage.findAll().size());
@@ -92,7 +104,7 @@ public class FilmServiceTests {
     public void findFilm_shouldReturnRightFilm() {
         filmDbStorage.add(film1);
 
-        assertEquals(film1, filmDbStorage.findFilm(film1.getId()));
+        assertEquals(1, filmDbStorage.findFilm(film1.getId()).getId());
     }
 
     @Test

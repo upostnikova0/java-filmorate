@@ -5,6 +5,10 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.friends.FriendDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
@@ -19,8 +23,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class UserServiceTests {
-    private final UserDbStorage userStorage;
-    private final FriendDbStorage friendDbStorage;
+    private EmbeddedDatabase embeddedDatabase;
+    private UserDbStorage userStorage;
+    private FriendDbStorage friendDbStorage;
     User user1;
     User user2;
     User user3;
@@ -28,26 +33,39 @@ public class UserServiceTests {
 
     @BeforeEach
     void beforeEach() {
-        userStorage.findAll().forEach(x -> friendDbStorage.removeAll(x.getId()));
-        userStorage.findAll().forEach(userStorage::remove);
+        embeddedDatabase = new EmbeddedDatabaseBuilder()
+                .addScript("schema.sql")
+                .addScript("data.sql")
+                .setType(EmbeddedDatabaseType.H2)
+                .build();
 
-        user1 = new User();
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(embeddedDatabase);
+
+        userStorage = new UserDbStorage(jdbcTemplate);
+        friendDbStorage = new FriendDbStorage(jdbcTemplate);
+
+        user1 = User.builder().build();
         user1.setEmail("francesy@gmail.com");
         user1.setLogin("francesy");
         user1.setName("Frances");
         user1.setBirthday(LocalDate.of(1990, Month.JANUARY, 15));
 
-        user2 = new User();
+        user2 = User.builder().build();
         user2.setEmail("petrov@yandex.ru");
         user2.setLogin("vasyapetrov");
         user2.setName("Vasya");
         user2.setBirthday(LocalDate.of(1997, Month.OCTOBER, 8));
 
-        user3 = new User();
+        user3 = User.builder().build();
         user3.setEmail("dyadyaStyopa@yandex.ru");
         user3.setLogin("yatebenedyadya");
         user3.setName("Styopa");
         user3.setBirthday(LocalDate.of(1980, Month.APRIL, 1));
+    }
+
+    @AfterEach
+    void afterEach() {
+        embeddedDatabase.shutdown();
     }
 
     @Test
@@ -124,7 +142,7 @@ public class UserServiceTests {
         friendDbStorage.add(user1.getId(), user2.getId());
         friendDbStorage.remove(user1.getId(), user2.getId());
 
-        assertTrue(userStorage.findUser(user1.getId()).getFriends().isEmpty());
+        assertTrue(friendDbStorage.findAll(user1.getId()).isEmpty());
 
     }
 }
