@@ -13,6 +13,7 @@ public interface FilmGenresStorage {
     Genre findGenre(long filmId, int genreId);
 
     Collection<Genre> findAll(long filmId);
+
     List<Map<Long, Genre>> findAll();
 
     void update(Film film);
