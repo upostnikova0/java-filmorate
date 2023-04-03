@@ -2,25 +2,29 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.friends.FriendStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.List;
 
-@Service
 @Slf4j
+@Service
 public class UserService {
     protected final UserStorage userStorage;
+    private final FriendStorage friendStorage;
 
     @Autowired
-    public UserService(UserStorage userStorage) {
+    public UserService(@Qualifier("userDbStorage") UserStorage userStorage, @Qualifier("friendDbStorage") FriendStorage friendStorage) {
         this.userStorage = userStorage;
+        this.friendStorage = friendStorage;
     }
 
     public User create(User user) {
@@ -28,48 +32,55 @@ public class UserService {
         return userStorage.add(user);
     }
 
-    public User getUser(long id) {
+    public User findUser(long id) {
         return userStorage.findUser(id);
-    }
-
-    public User update(User user) {
-        checkValidity(user);
-        return userStorage.update(user);
     }
 
     public Collection<User> findAll() {
         return userStorage.findAll();
     }
 
-    public void addFriend(long id, long friendId) {
-        User user = userStorage.findUser(id);
-        User friend = userStorage.findUser(friendId);
-        user.getFriends().add(friendId);
-        friend.getFriends().add(id);
+    public User update(User user) {
+        checkValidity(user);
+        findUser(user.getId());
+        return userStorage.update(user);
+    }
+
+    public void addFriend(long userId, long friendId) {
+        userStorage.findUser(userId);
+        userStorage.findUser(friendId);
+        friendStorage.add(userId, friendId);
+    }
+
+    public Collection<User> getAllFriends(long id) {
+        userStorage.findUser(id);
+        return friendStorage.findAll(id);
     }
 
     public void deleteFriend(long id, long friendId) {
-        User user = userStorage.findUser(id);
-        User friend = userStorage.findUser(friendId);
-        friend.getFriends().remove(user.getId());
-        user.getFriends().remove(friend.getId());
+        userStorage.findUser(id);
+        userStorage.findUser(friendId);
+        friendStorage.remove(id, friendId);
     }
 
-    public Set<User> getAllFriends(long id) {
-        Set<User> friends = new LinkedHashSet<>();
-        User user = userStorage.findUser(id);
-        user.getFriends().forEach(x -> friends.add(getUser(x)));
-        return friends;
-    }
+    public Collection<User> getCommonFriends(long id, long friendId) {
+        userStorage.findUser(id);
+        userStorage.findUser(friendId);
 
-    public Set<User> getCommonFriends(long id, long friendId) {
-        User user = userStorage.findUser(id);
-        User friend = userStorage.findUser(friendId);
-        Set<User> common = new LinkedHashSet<>();
-        user.getFriends().stream()
-                .filter(friend.getFriends()::contains)
-                .forEach(x -> common.add(getUser(x)));
-        return common;
+        Collection<Long> commonFriendsId = friendStorage.getCommonFriends(id, friendId);
+        Collection<User> users = userStorage.findAll();
+
+        List<User> commonFriends = new ArrayList<>();
+
+        for (Long userId : commonFriendsId) {
+            for (User user : users) {
+                if (user.getId().equals(userId)) {
+                    commonFriends.add(user);
+                }
+            }
+        }
+
+        return commonFriends;
     }
 
     private void checkValidity(User user) {
@@ -87,7 +98,7 @@ public class UserService {
             user.setName(user.getLogin());
         }
 
-        if(user.getBirthday().isAfter(LocalDate.now())) {
+        if (user.getBirthday().isAfter(LocalDate.now())) {
             log.warn("Дата рождения не может быть в будущем.");
             throw new ValidationException("Дата рождения не может быть в будущем.");
         }

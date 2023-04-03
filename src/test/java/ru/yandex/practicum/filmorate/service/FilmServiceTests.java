@@ -1,125 +1,133 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
+import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.film.InMemoryFilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest
+@AutoConfigureTestDatabase
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 public class FilmServiceTests {
+    Mpa mpa1;
+    Mpa mpa2;
+    Genre genre1;
+    Genre genre2;
     Film film1;
     Film film2;
-    User user1;
 
-    User user2;
-
-    FilmService filmService = new FilmService(new InMemoryFilmStorage(), new UserService(new InMemoryUserStorage()));
+    private EmbeddedDatabase embeddedDatabase;
+    private FilmDbStorage filmDbStorage;
 
     @BeforeEach
-    void createValidFilm() {
-        filmService.findAll().clear();
+    void beforeEach() {
+        embeddedDatabase = new EmbeddedDatabaseBuilder()
+                .addScripts("schema.sql")
+                .addScript("data.sql")
+                .setType(EmbeddedDatabaseType.H2)
+                .build();
 
-        film1 = new Film();
-        film1.setName("Film Name");
-        film1.setDescription("Film Description");
-        film1.setReleaseDate(LocalDate.of(2020,Month.AUGUST,15));
-        film1.setDuration(180L);
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(embeddedDatabase);
+        filmDbStorage = new FilmDbStorage(jdbcTemplate);
 
-        film2 = new Film();
-        film2.setName("Second Film Name");
-        film2.setDescription("Second Film Description");
-        film2.setReleaseDate(LocalDate.of(2022,Month.OCTOBER,15));
-        film2.setDuration(120L);
+        mpa1 = Mpa.builder()
+                .id(1)
+                .build();
 
-        user1 = new User();
-        user1.setEmail("francesy@gmail.com");
-        user1.setLogin("francesy");
-        user1.setName("Frances");
-        user1.setBirthday(LocalDate.of(1990, Month.JANUARY, 15));
+        mpa2 = Mpa.builder()
+                .id(2)
+                .build();
 
-        user2 = new User();
-        user2.setEmail("petrov@yandex.ru");
-        user2.setLogin("vasyapetrov");
-        user2.setName("Vasya");
-        user2.setBirthday(LocalDate.of(1997, Month.OCTOBER,8));
+        genre1 = Genre.builder()
+                .id(1)
+                .build();
+
+        genre2 = Genre.builder()
+                .id(2)
+                .build();
+
+        film1 = Film.builder()
+                .name("Film Name")
+                .description("Film Description")
+                .releaseDate(LocalDate.of(2020, Month.AUGUST, 15))
+                .duration(180L)
+                .mpa(mpa1)
+                .build();
+
+        film2 = Film.builder()
+                .name("Film2 Name")
+                .description("Film2 Description")
+                .releaseDate(LocalDate.of(2022, Month.MARCH, 13))
+                .duration(120L)
+                .mpa(mpa2)
+                .genres(new ArrayList<>())
+                .build();
+        film2.getGenres().add(genre2);
     }
 
-    @Test
-    public void add_shouldReturnValidIdWhenCreate() {
-        filmService.add(film1);
-
-        assertEquals(film1, filmService.findAll().toArray()[0]);
-    }
-
-    @Test
-    public void update_shouldUpdate() {
-        filmService.add(film1);
-
-        film1.setName("Terminator 2");
-
-        filmService.update(film1);
-
-        assertEquals("Terminator 2", filmService.findFilm(film1.getId()).getName());
+    @AfterEach
+    void afterEach() {
+        embeddedDatabase.shutdown();
     }
 
     @Test
     public void findAll_shouldReturnRightFilmsSize() {
-        assertEquals(0, filmService.findAll().size());
+        assertEquals(0, filmDbStorage.findAll().size());
 
-        filmService.add(film1);
+        filmDbStorage.add(film1);
 
-        assertEquals(1, filmService.findAll().size());
+        assertEquals(1, filmDbStorage.findAll().size());
 
-        filmService.add(film2);
+        filmDbStorage.add(film2);
 
-        assertEquals(2, filmService.findAll().size());
+        assertEquals(2, filmDbStorage.findAll().size());
     }
 
     @Test
     public void findFilm_shouldReturnRightFilm() {
-        filmService.add(film1);
+        filmDbStorage.add(film1);
 
-        assertEquals(film1, filmService.findFilm(film1.getId()));
+        assertEquals(1, filmDbStorage.findFilm(film1.getId()).getId());
     }
 
     @Test
-    public void addLike_shouldAddLike() {
-        filmService.add(film1);
-        filmService.userService.create(user1);
+    public void update_shouldUpdate() {
+        filmDbStorage.add(film1);
 
-        filmService.addLike(film1.getId(), user1.getId());
+        film1.setName("Terminator 2");
+        Mpa mpa = film1.getMpa();
+        filmDbStorage.update(film1, mpa.getId());
 
-        assertEquals(user1.getId(), filmService.findFilm(film1.getId()).getLikes().toArray()[0]);
+
+        assertEquals("Terminator 2", filmDbStorage.findFilm(film1.getId()).getName());
     }
 
     @Test
-    public void deleteLike_shouldDeleteLike() {
-        filmService.add(film1);
-        filmService.userService.create(user1);
+    public void remove_shouldRemoveFilm() {
+        assertEquals(0, filmDbStorage.findAll().size());
 
-        filmService.addLike(film1.getId(), user1.getId());
-        filmService.deleteLike(film1.getId(), user1.getId());
+        filmDbStorage.add(film1);
 
-        assertTrue(filmService.findFilm(film1.getId()).getLikes().isEmpty());
-    }
+        assertEquals(1, filmDbStorage.findAll().size());
 
-    @Test
-    public void getTopFilms_shouldReturnNTopFilms() {
-        filmService.add(film1);
-        filmService.add(film2);
-
-        filmService.userService.create(user1);
-        filmService.userService.create(user2);
-
-        filmService.addLike(film2.getId(), user1.getId());
-        filmService.addLike(film2.getId(), user2.getId());
-
-        assertEquals(film2, filmService.getTopFilms(1).toArray()[0]);
+        filmDbStorage.remove(film1);
+        assertEquals(0, filmDbStorage.findAll().size());
     }
 }

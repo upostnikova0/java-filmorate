@@ -10,8 +10,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-@Component
 @Slf4j
+@Component("inMemoryUserStorage")
 public class InMemoryUserStorage implements UserStorage {
     protected static Long globalId = 1L;
     protected final Map<Long, User> users = new HashMap<>();
@@ -37,9 +37,18 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public void remove(User user) {
-        users.remove(findUser(user.getId()).getId());
-        log.info("Пользователь с ID: " + user.getId() + " удален.");
+    public User findUser(long id) {
+        if (users.containsKey(id)) {
+            log.info("Пользователь с ID " + id + " найден.");
+            return users.get(id);
+        } else {
+            throw new UserNotFoundException("Пользователь с ID " + id + " не найден");
+        }
+    }
+
+    public Collection<User> findAll() {
+        log.info("Количество пользователей: " + users.size());
+        return users.values();
     }
 
     @Override
@@ -54,22 +63,16 @@ public class InMemoryUserStorage implements UserStorage {
         return user;
     }
 
-    public Collection<User> findAll() {
-        log.info("Количество пользователей: " + users.size());
-        return users.values();
-    }
-
     @Override
-    public User findUser(long id) {
-        if(users.containsKey(id)) {
-            log.info("Пользователь с ID " + id + " найден.");
-            return users.get(id);
-        } else {
-            throw new UserNotFoundException("Пользователь с ID " + id + " не найден");
-        }
+    public void remove(User user) {
+        users.remove(user.getId());
+        log.info("Пользователь с ID: " + user.getId() + " удален.");
     }
 
     private static Long getNextId() {
         return globalId++;
     }
 }
+
+
+

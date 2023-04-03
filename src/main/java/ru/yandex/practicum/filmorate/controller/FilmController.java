@@ -9,11 +9,11 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 import javax.validation.Valid;
 import java.util.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/films")
-@Slf4j
 public class FilmController {
-    private final FilmService filmService;
+    protected final FilmService filmService;
 
     @Autowired
     public FilmController(FilmService filmService) {
@@ -21,7 +21,7 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film add(@Valid @RequestBody Film film) {
+    public Film create(@Valid @RequestBody Film film) {
         return filmService.add(film);
     }
 
@@ -36,7 +36,7 @@ public class FilmController {
     }
 
     @GetMapping("/{filmId}")
-    public Film getFilm(@Valid @PathVariable("filmId") Long filmId){
+    public Film getFilm(@Valid @PathVariable("filmId") Long filmId) {
         return filmService.findFilm(filmId);
     }
 
@@ -51,8 +51,9 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public Set<Film> getTopFilms(@RequestParam(required = false, defaultValue = "10") Integer count) {
-        log.warn("ручка топфильмов");
-        return filmService.getTopFilms(count);
+    public Collection<Film> getPopular(@RequestParam(required = false, defaultValue = "10") Integer count) {
+        Collection<Film> popularFilms = filmService.getPopular(count);
+        System.out.println(Arrays.toString(popularFilms.toArray()));
+        return popularFilms;
     }
 }
