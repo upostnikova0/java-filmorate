@@ -25,11 +25,6 @@ public class FilmController {
         return filmService.add(film);
     }
 
-    @PutMapping
-    public Film update(@Valid @RequestBody Film film) {
-        return filmService.update(film);
-    }
-
     @GetMapping
     public Collection<Film> findAll() {
         return filmService.findAll();
@@ -38,6 +33,16 @@ public class FilmController {
     @GetMapping("/{filmId}")
     public Film getFilm(@Valid @PathVariable("filmId") Long filmId) {
         return filmService.findFilm(filmId);
+    }
+
+    @PutMapping
+    public Film update(@Valid @RequestBody Film film) {
+        return filmService.update(film);
+    }
+
+    @DeleteMapping("/{filmId}")
+    public Film delete(@Valid @PathVariable("filmId") Long filmId) {
+        return filmService.remove(filmId);
     }
 
     @PutMapping("/{id}/like/{userId}")
