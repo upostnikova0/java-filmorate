@@ -43,19 +43,6 @@ public class FilmService {
         this.genreService = genreService;
     }
 
-//    public Film add(Film film) {
-//        checkValidity(film);
-//
-//        Film newFilm = filmStorage.add(film);
-//
-//        if (film.getGenres() != null) {
-//            for (Genre genre : film.getGenres()) {
-//                filmGenresStorage.addGenre(film.getId(), genre.getId());
-//            }
-//        }
-//        newFilm.setGenres(new ArrayList<>(filmGenresStorage.findAll(newFilm.getId())));
-    //        return newFilm;
-    //    }
     public Film add(Film film) {
         checkValidity(film);
 

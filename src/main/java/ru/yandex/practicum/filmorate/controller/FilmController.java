@@ -52,8 +52,6 @@ public class FilmController {
 
     @GetMapping("/popular")
     public Collection<Film> getPopular(@RequestParam(required = false, defaultValue = "10") Integer count) {
-        Collection<Film> popularFilms = filmService.getPopular(count);
-        System.out.println(Arrays.toString(popularFilms.toArray()));
-        return popularFilms;
+        return filmService.getPopular(count);
     }
 }
