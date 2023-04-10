@@ -75,6 +75,8 @@ public class FilmDbStorage implements FilmStorage {
     public Film remove(Film film) {
         String sql = "DELETE FROM FILMS WHERE film_id = ?";
         jdbcTemplate.update(sql, film.getId());
+
+        log.info(String.format("Фильм с ID %d успешно удален.", film.getId()));
         return film;
     }
 

@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.service;
+package ru.yandex.practicum.filmorate.storage;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.AfterEach;
@@ -14,6 +14,7 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 
 import java.time.LocalDate;
@@ -25,13 +26,15 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-public class FilmServiceTests {
+public class FilmStorageTests {
     Mpa mpa1;
     Mpa mpa2;
     Genre genre1;
     Genre genre2;
     Film film1;
     Film film2;
+    User user1;
+    User user2;
 
     private EmbeddedDatabase embeddedDatabase;
     private FilmDbStorage filmDbStorage;
@@ -80,6 +83,20 @@ public class FilmServiceTests {
                 .genres(new ArrayList<>())
                 .build();
         film2.getGenres().add(genre2);
+
+        user1 = User.builder()
+                .email("lyolik@mail.ru")
+                .login("lyolik")
+                .name("Lyolik")
+                .birthday(LocalDate.of(2000, Month.AUGUST, 25))
+                .build();
+
+        user2 = User.builder()
+                .email("bolik@mail.ru")
+                .login("bolik")
+                .name("Bolik")
+                .birthday(LocalDate.of(2000, Month.DECEMBER, 25))
+                .build();
     }
 
     @AfterEach
