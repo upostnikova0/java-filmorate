@@ -105,7 +105,18 @@ public class UserStorageTests {
         userStorage.update(user1);
 
         assertEquals("Акакий", userStorage.findUser(user1.getId()).getName());
+    }
 
+    @Test
+    public void remove_shouldRemoveUser() {
+        assertEquals(0, userStorage.findAll().size());
+
+        userStorage.add(user1);
+
+        assertEquals(1, userStorage.findAll().size());
+
+        userStorage.remove(user1);
+        assertEquals(0, userStorage.findAll().size());
     }
 
     @Test
