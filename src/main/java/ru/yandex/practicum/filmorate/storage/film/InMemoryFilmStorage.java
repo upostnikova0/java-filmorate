@@ -60,6 +60,11 @@ public class InMemoryFilmStorage implements FilmStorage {
         return film;
     }
 
+    @Override
+    public Collection<Film> getCommonFilms(Long userId, Long friendId) {
+        return null;
+    }
+
     private static Long getNextId() {
         return globalId++;
     }
