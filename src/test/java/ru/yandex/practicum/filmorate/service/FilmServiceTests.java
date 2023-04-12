@@ -14,7 +14,10 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
+import ru.yandex.practicum.filmorate.storage.likes.LikesDbStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -32,9 +35,13 @@ public class FilmServiceTests {
     Genre genre2;
     Film film1;
     Film film2;
+    User user1;
+    User user2;
 
     private EmbeddedDatabase embeddedDatabase;
     private FilmDbStorage filmDbStorage;
+    private UserDbStorage userDbStorage;
+    private LikesDbStorage likesDbStorage;
 
     @BeforeEach
     void beforeEach() {
@@ -46,6 +53,10 @@ public class FilmServiceTests {
 
         JdbcTemplate jdbcTemplate = new JdbcTemplate(embeddedDatabase);
         filmDbStorage = new FilmDbStorage(jdbcTemplate);
+
+        userDbStorage = new UserDbStorage(jdbcTemplate);
+
+        likesDbStorage = new LikesDbStorage(jdbcTemplate);
 
         mpa1 = Mpa.builder()
                 .id(1)
@@ -80,6 +91,20 @@ public class FilmServiceTests {
                 .genres(new ArrayList<>())
                 .build();
         film2.getGenres().add(genre2);
+
+        user1 = User.builder()
+                .email("fff@mail.ru")
+                .login("testLogin")
+                .birthday(LocalDate.of(2000, 10, 14))
+                .name("Oleg")
+                .build();
+
+        user2 = User.builder()
+                .email("bbb@mail.ru")
+                .login("secondLogin")
+                .birthday(LocalDate.of(1990, 12, 12))
+                .name("Ivan")
+                .build();
     }
 
     @AfterEach
@@ -129,5 +154,22 @@ public class FilmServiceTests {
 
         filmDbStorage.remove(film1);
         assertEquals(0, filmDbStorage.findAll().size());
+    }
+
+    @Test
+    public void getCommonFilms_shouldGetCommonFilms() {
+        filmDbStorage.add(film1);
+
+
+        userDbStorage.add(user1);
+        userDbStorage.add(user2);
+
+        likesDbStorage.add(film1.getId(), user1.getId());
+        likesDbStorage.add(film1.getId(), user2.getId());
+
+        assertArrayEquals(filmDbStorage.findAll().toArray(),
+                filmDbStorage.getCommonFilms(user1.getId(), user2.getId()).toArray());
+
+
     }
 }
