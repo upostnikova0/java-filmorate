@@ -176,6 +176,10 @@ public class FilmService {
         return popularFilms;
     }
 
+    public Collection<Film> getCommonFilms(Long userId, Long friendId) {
+        return filmStorage.getCommonFilms(userId, friendId);
+    }
+
     private void checkValidity(Film film) {
         if (film.getName() == null || film.getName().isBlank()) {
             log.warn("Название фильма не может быть пустым.");

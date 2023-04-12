@@ -78,6 +78,14 @@ public class FilmDbStorage implements FilmStorage {
         return film;
     }
 
+    @Override
+    public Collection<Film> getCommonFilms(Long userId, Long friendId) {
+        String sqlQuery = "SELECT * FROM films JOIN mpa_rating m ON m.mpa_rating_id = films.mpa_rating_id " +
+                "WHERE film_id IN(SELECT film_id FROM likes WHERE user_id IN(?,?) " +
+                "GROUP BY film_id HAVING COUNT(user_id) > 1)";
+        return jdbcTemplate.query(sqlQuery, FilmDbStorage::filmMapper, userId, friendId);
+    }
+
     public static Film filmMapper(ResultSet rs, int rowNum) throws SQLException {
         return Film.builder()
                 .id(rs.getLong("film_id"))
