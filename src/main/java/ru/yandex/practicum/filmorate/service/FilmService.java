@@ -113,14 +113,10 @@ public class FilmService {
         return film;
     }
 
-    public Film remove(long filmId) {
+    public void remove(long filmId) {
         Film film = findFilm(filmId);
 
-        filmGenresStorage.removeAll(filmId);
-        likesStorage.removeAll(filmId);
         filmStorage.remove(film);
-
-        return film;
     }
 
     public void addLike(long filmId, long userId) {
