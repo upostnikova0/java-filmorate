@@ -18,7 +18,7 @@ import java.util.List;
 @Slf4j
 @Service
 public class UserService {
-    protected final UserStorage userStorage;
+    private final UserStorage userStorage;
     private final FriendStorage friendStorage;
 
     @Autowired

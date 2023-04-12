@@ -11,7 +11,7 @@ import java.util.List;
 @Slf4j
 @Service
 public class MpaService {
-    protected final MpaStorage mpaStorage;
+    private final MpaStorage mpaStorage;
 
     public MpaService(@Qualifier("mpaDbStorage") MpaStorage mpaStorage) {
         this.mpaStorage = mpaStorage;
