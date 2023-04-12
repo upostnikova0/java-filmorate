@@ -51,14 +51,10 @@ public class UserService {
         return userStorage.update(user);
     }
 
-    public User remove(long userId) {
+    public void remove(long userId) {
         User user = findUser(userId);
 
-        likesStorage.remove(userId);
-        friendStorage.removeAll(userId);
         userStorage.remove(user);
-
-        return user;
     }
 
     public void addFriend(long userId, long friendId) {
