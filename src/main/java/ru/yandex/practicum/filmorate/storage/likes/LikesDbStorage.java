@@ -30,6 +30,14 @@ public class LikesDbStorage implements LikesStorage {
     }
 
     @Override
+    public void remove(long userId) {
+        String sql = "DELETE FROM LIKES WHERE user_id = ?";
+        jdbcTemplate.update(sql, userId);
+
+        log.info(String.format("Удалены все лайки от пользователя с ID %d.", userId));
+    }
+
+    @Override
     public Collection<Long> findAll(long filmId) {
         String sql = "SELECT * FROM LIKES WHERE FILM_ID = ?";
         SqlRowSet userRows = jdbcTemplate.queryForRowSet(sql, filmId);
@@ -59,8 +67,11 @@ public class LikesDbStorage implements LikesStorage {
         return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getLong("film_id"), count);
     }
 
-    public void removeAll(long id) {
+    @Override
+    public void removeAll(long filmId) {
         String sql = "DELETE FROM LIKES WHERE film_id = ?";
-        jdbcTemplate.update(sql, id);
+        jdbcTemplate.update(sql, filmId);
+
+        log.info(String.format("Все лайки фильма с ID %d успешно удалены.", filmId));
     }
 }

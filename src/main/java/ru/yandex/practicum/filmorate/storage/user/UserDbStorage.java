@@ -69,8 +69,9 @@ public class UserDbStorage implements UserStorage {
     @Override
     public void remove(User user) {
         String sql = "DELETE FROM USERS WHERE user_id = ?";
-        log.info("Удален пользователь {}.", user);
         jdbcTemplate.update(sql, user.getId());
+
+        log.info("Удален пользователь {}.", user);
     }
 
     public static User userMapper(ResultSet rs, int rowNum) throws SQLException {

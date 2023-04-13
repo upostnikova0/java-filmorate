@@ -113,6 +113,12 @@ public class FilmService {
         return film;
     }
 
+    public void remove(long filmId) {
+        Film film = findFilm(filmId);
+
+        filmStorage.remove(film);
+    }
+
     public void addLike(long filmId, long userId) {
         findFilm(filmId);
         userService.findUser(userId);

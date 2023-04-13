@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.friends.FriendStorage;
+import ru.yandex.practicum.filmorate.storage.likes.LikesStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
@@ -20,11 +21,15 @@ import java.util.List;
 public class UserService {
     protected final UserStorage userStorage;
     private final FriendStorage friendStorage;
+    private final LikesStorage likesStorage;
 
     @Autowired
-    public UserService(@Qualifier("userDbStorage") UserStorage userStorage, @Qualifier("friendDbStorage") FriendStorage friendStorage) {
+    public UserService(@Qualifier("userDbStorage") UserStorage userStorage,
+                       @Qualifier("friendDbStorage") FriendStorage friendStorage,
+                       @Qualifier("likesDbStorage") LikesStorage likesStorage) {
         this.userStorage = userStorage;
         this.friendStorage = friendStorage;
+        this.likesStorage = likesStorage;
     }
 
     public User create(User user) {
@@ -44,6 +49,12 @@ public class UserService {
         checkValidity(user);
         findUser(user.getId());
         return userStorage.update(user);
+    }
+
+    public void remove(long userId) {
+        User user = findUser(userId);
+
+        userStorage.remove(user);
     }
 
     public void addFriend(long userId, long friendId) {

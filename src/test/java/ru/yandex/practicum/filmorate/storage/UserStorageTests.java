@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate.service;
+package ru.yandex.practicum.filmorate.storage;
 
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.*;
@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-public class UserServiceTests {
+public class UserStorageTests {
     private EmbeddedDatabase embeddedDatabase;
     private UserDbStorage userStorage;
     private FriendDbStorage friendDbStorage;
@@ -105,7 +105,18 @@ public class UserServiceTests {
         userStorage.update(user1);
 
         assertEquals("Акакий", userStorage.findUser(user1.getId()).getName());
+    }
 
+    @Test
+    public void remove_shouldRemoveUser() {
+        assertEquals(0, userStorage.findAll().size());
+
+        userStorage.add(user1);
+
+        assertEquals(1, userStorage.findAll().size());
+
+        userStorage.remove(user1);
+        assertEquals(0, userStorage.findAll().size());
     }
 
     @Test

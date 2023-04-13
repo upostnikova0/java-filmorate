@@ -53,9 +53,12 @@ public class FriendDbStorage implements FriendStorage {
         return commonFriendsId;
     }
 
-    public void removeAll(long id) {
+    @Override
+    public void removeAll(long userId) {
         String sql = "DELETE FROM USER_FRIENDS WHERE user_id = ?";
-        jdbcTemplate.update(sql, id);
+        jdbcTemplate.update(sql, userId);
+
+        log.info(String.format("Пользователь с ID %d больше не имеет дружественных связей.", userId));
     }
 
     public static User friendMapper(ResultSet rs, int rowNum) throws SQLException {
