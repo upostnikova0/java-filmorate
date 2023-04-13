@@ -5,7 +5,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Slf4j
 @Component("likesDbStorage")
@@ -42,9 +44,9 @@ public class LikesDbStorage implements LikesStorage {
         String sql = "SELECT * FROM LIKES WHERE FILM_ID = ?";
         SqlRowSet userRows = jdbcTemplate.queryForRowSet(sql, filmId);
         Set<Long> likes = new LinkedHashSet<>();
-            if (userRows.next()) {
-                likes.add(userRows.getLong("user_id"));
-            }
+        if (userRows.next()) {
+            likes.add(userRows.getLong("user_id"));
+        }
         return likes;
     }
 
@@ -53,9 +55,9 @@ public class LikesDbStorage implements LikesStorage {
         String sql = "SELECT * FROM LIKES";
         SqlRowSet userRows = jdbcTemplate.queryForRowSet(sql);
         Set<Long> likes = new LinkedHashSet<>();
-            if (userRows.next()) {
-                likes.add(userRows.getLong("user_id"));
-            }
+        if (userRows.next()) {
+            likes.add(userRows.getLong("user_id"));
+        }
         return likes;
     }
 

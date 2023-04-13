@@ -76,9 +76,9 @@ public class FilmDirectorsDbStorage implements FilmDirectorsStorage {
                 "WHERE FILM_ID = ?";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> Director.builder()
-                .id(rs.getLong("director_id"))
-                .name(rs.getString("director_name"))
-                .build(),
+                        .id(rs.getLong("director_id"))
+                        .name(rs.getString("director_name"))
+                        .build(),
                 filmId
         );
     }
