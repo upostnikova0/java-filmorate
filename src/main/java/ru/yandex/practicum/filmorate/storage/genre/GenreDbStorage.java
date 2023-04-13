@@ -7,7 +7,8 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.GenreNotFoundException;
 import ru.yandex.practicum.filmorate.model.Genre;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -36,8 +37,8 @@ public class GenreDbStorage implements GenreStorage {
     public Collection<Genre> findAll() {
         String sql = "SELECT * FROM GENRES";
         return jdbcTemplate.query(sql, (rs, rowNum) -> new Genre(
-                                rs.getInt("genre_id"),
-                                rs.getString("genre_name")))
+                        rs.getInt("genre_id"),
+                        rs.getString("genre_name")))
                 .stream()
                 .sorted(Comparator.comparing(Genre::getId))
                 .collect(Collectors.toList());
