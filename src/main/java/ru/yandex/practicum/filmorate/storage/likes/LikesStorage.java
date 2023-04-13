@@ -14,6 +14,4 @@ public interface LikesStorage {
     Collection<Long> findAll(long filmId);
 
     Collection<Long> findAll();
-
-    Collection<Long> getPopular(int count);
 }

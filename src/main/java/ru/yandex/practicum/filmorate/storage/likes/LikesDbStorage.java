@@ -59,14 +59,6 @@ public class LikesDbStorage implements LikesStorage {
         return likes;
     }
 
-    public Collection<Long> getPopular(int count) {
-        String sql = "SELECT FILM_ID, FROM LIKES " +
-                "GROUP BY FILM_ID " +
-                "ORDER BY COUNT(USER_ID) DESC LIMIT ?";
-
-        return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getLong("film_id"), count);
-    }
-
     @Override
     public void removeAll(long filmId) {
         String sql = "DELETE FROM LIKES WHERE film_id = ?";

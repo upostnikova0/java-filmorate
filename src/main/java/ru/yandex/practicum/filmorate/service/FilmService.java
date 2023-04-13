@@ -208,55 +208,32 @@ public class FilmService {
         likesStorage.remove(filmId, userId);
     }
 
-    public Collection<Film> getPopular(Integer count) {
-        Collection<Long> popularFilmsId = likesStorage.getPopular(count);
-        List<Film> popularFilms = new ArrayList<>();
+    public Collection<Film> getPopular(Integer count, Integer genreId, Integer year) {
+        Map<Long, Film> popularFilms = filmStorage.getPopular(count, genreId, year).stream().collect(Collectors.toMap(Film::getId, film -> film));
+        List<Map<Long, Genre>> allGenres = filmGenresStorage.findAll();
+        List<Map<Long, Director>> allDirectors = filmDirectorsStorage.findAll();
 
-        if (popularFilmsId.size() == count) {
-            for (Long filmId : popularFilmsId) {
-                Film film = filmStorage.findFilm(filmId);
-                film.setMpa(mpaService.getMpa(film.getMpa().getId()));
-                film.setGenres(new ArrayList<>(filmGenresStorage.findAll(filmId)));
-                popularFilms.add(film);
-            }
-
-            return popularFilms;
+        if (popularFilms.size() == 0) {
+            return popularFilms.values();
         }
 
-        if (popularFilmsId.size() < count) {
-            for (Long filmId : popularFilmsId) {
-                Film film = filmStorage.findFilm(filmId);
-                film.setMpa(mpaService.getMpa(film.getMpa().getId()));
-                film.setGenres(new ArrayList<>(filmGenresStorage.findAll(filmId)));
-                popularFilms.add(film);
-            }
-
-            Collection<Film> allFilms = filmStorage.findAll();
-            for (Film film : allFilms) {
-                film.setMpa(mpaService.getMpa(film.getMpa().getId()));
-                film.setGenres(new ArrayList<>(filmGenresStorage.findAll(film.getId())));
-                if (!popularFilms.contains(film)) {
-                    popularFilms.add(film);
+        if (!allGenres.isEmpty()) {
+            for (Map<Long, Genre> map : allGenres) {
+                for (Long filmId : map.keySet()) {
+                    popularFilms.get(filmId).getGenres().add(map.get(filmId));
                 }
             }
-
-            return popularFilms.stream()
-                    .limit(count)
-                    .collect(Collectors.toList());
         }
 
-        if (popularFilmsId.isEmpty()) {
-            popularFilms = new ArrayList<>(filmStorage.findAll());
-            for (Film film : popularFilms) {
-                film.setMpa(mpaService.getMpa(film.getMpa().getId()));
-                film.setGenres(new ArrayList<>(filmGenresStorage.findAll(film.getId())));
+        if (!allDirectors.isEmpty()) {
+            for (Map<Long, Director> map : allDirectors) {
+                for (Long filmId : map.keySet()) {
+                    popularFilms.get(filmId).getDirectors().add(map.get(filmId));
+                }
             }
-            return popularFilms.stream()
-                    .limit(count)
-                    .collect(Collectors.toList());
         }
 
-        return popularFilms;
+        return popularFilms.values();
     }
 
     public Collection<Film> getCommonFilms(Long userId, Long friendId) {
