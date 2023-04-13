@@ -281,5 +281,4 @@ public class FilmService {
     public List<Film> getFilmSearch(String query, String by) {
         return filmStorage.getFilmSearch(query, by);
     }
-
 }
