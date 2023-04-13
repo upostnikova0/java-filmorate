@@ -6,9 +6,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.filmdirectors.FilmDirectorsStorage;
 import ru.yandex.practicum.filmorate.storage.filmgenres.FilmGenresStorage;
 import ru.yandex.practicum.filmorate.storage.likes.LikesStorage;
 
@@ -20,27 +22,55 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class FilmService {
-    protected final FilmStorage filmStorage;
-    protected final FilmGenresStorage filmGenresStorage;
-    protected final LikesStorage likesStorage;
-    protected final UserService userService;
-    protected final MpaService mpaService;
-    protected final GenreService genreService;
+    private final FilmStorage filmStorage;
+    private final FilmGenresStorage filmGenresStorage;
+    private final LikesStorage likesStorage;
+    private final FilmDirectorsStorage filmDirectorsStorage;
+    private final UserService userService;
+    private final MpaService mpaService;
+    private final GenreService genreService;
+    private final DirectorService directorService;
 
     @Autowired
     public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
                        @Qualifier("filmGenresDbStorage") FilmGenresStorage filmGenresStorage,
                        @Qualifier("likesDbStorage") LikesStorage likesStorage,
+                       @Qualifier("filmDirectorsDbStorage") FilmDirectorsStorage filmDirectorsStorage,
                        UserService userService,
                        MpaService mpaService,
-                       GenreService genreService
+                       GenreService genreService,
+                       DirectorService directorService
     ) {
         this.filmStorage = filmStorage;
         this.filmGenresStorage = filmGenresStorage;
         this.likesStorage = likesStorage;
+        this.filmDirectorsStorage = filmDirectorsStorage;
         this.userService = userService;
         this.mpaService = mpaService;
         this.genreService = genreService;
+        this.directorService = directorService;
+    }
+
+    public Collection<Film> getSortedFilmsByDirectorId(long directorId, String filter) {
+        directorService.getDirector(directorId);
+        List<Map<Long, Genre>> allGenres = filmGenresStorage.findAll();
+        List<Map<Long, Director>> allDirectors = filmDirectorsStorage.findAll();
+
+        if (filter != null) {
+            if (filter.equals("year")) {
+                List<Film> allFilms = new ArrayList<>(filmDirectorsStorage.getDirectorFilmsByYear(directorId));
+
+                return getFilmsWithAllFields(allFilms, allGenres, allDirectors);
+            }
+
+            if (filter.equals("likes")) {
+                List<Film> allFilms = new ArrayList<>(filmDirectorsStorage.getDirectorFilmsByLikes(directorId));
+
+                return getFilmsWithAllFields(allFilms, allGenres, allDirectors);
+            }
+
+        }
+        throw new ValidationException("Невозможно отсортировать фильмы: фильтр для сортировки не задан или задан неверно.");
     }
 
     public Film add(Film film) {
@@ -51,32 +81,61 @@ public class FilmService {
         if (film.getGenres() != null) {
             filmGenresStorage.addGenreList(film.getId(), film.getGenres());
         }
+
+        if (film.getDirectors() != null) {
+            filmDirectorsStorage.addDirectorList(film.getId(), film.getDirectors());
+        }
+
         newFilm.setGenres(new ArrayList<>(filmGenresStorage.findAll(newFilm.getId())));
+        newFilm.setDirectors(new ArrayList<>(filmDirectorsStorage.findAll(newFilm.getId())));
         return newFilm;
     }
 
     public Collection<Film> findAll() {
-        Map<Long, Film> allFilms = filmStorage.findAll().stream().collect(Collectors.toMap(Film::getId, film -> film));
+        List<Film> allFilms = new ArrayList<>(filmStorage.findAll());
         List<Map<Long, Genre>> allGenres = filmGenresStorage.findAll();
+        List<Map<Long, Director>> allDirectors = filmDirectorsStorage.findAll();
+        return getFilmsWithAllFields(allFilms, allGenres, allDirectors);
+    }
 
-        if (!allGenres.isEmpty()) {
+    private Collection<Film> getFilmsWithAllFields(List<Film> allFilms, List<Map<Long, Genre>> allGenres, List<Map<Long, Director>> allDirectors) {
+        if (allGenres != null) {
             for (Map<Long, Genre> map : allGenres) {
-                for (Long filmId : map.keySet()) {
-                    allFilms.get(filmId).getGenres().add(map.get(filmId));
+                for (Film film : allFilms) {
+                    if (map.containsKey(film.getId())) {
+                        film.getGenres().add(map.get(film.getId()));
+                    }
                 }
             }
         }
 
-        return allFilms.values();
+        if (allDirectors != null) {
+            for (Map<Long, Director> map : allDirectors) {
+                for (Film film : allFilms) {
+                    if (map.containsKey(film.getId())) {
+                        film.getDirectors().add(map.get(film.getId()));
+                    }
+                }
+            }
+        }
+
+        return allFilms;
     }
 
     public Film findFilm(long filmId) {
         Film film = filmStorage.findFilm(filmId);
         Collection<Genre> genres = filmGenresStorage.findAll(filmId);
+        Collection<Director> directors = filmDirectorsStorage.findAll(filmId);
 
         if (!genres.isEmpty()) {
             for (Genre genre : genres) {
                 film.getGenres().add(genre);
+            }
+        }
+
+        if (!directors.isEmpty()) {
+            for (Director director : directors) {
+                film.getDirectors().add(director);
             }
         }
 
@@ -104,13 +163,37 @@ public class FilmService {
             filmGenresStorage.removeAll(film.getId());
         }
 
+        if (film.getDirectors() != null) {
+            Set<Director> filmDirectors = new HashSet<>(film.getDirectors());
+            for (Director director : filmDirectors) {
+                directorService.getDirector(director.getId());
+            }
+
+            List<Director> filmDirectorsWithName = new ArrayList<>();
+            for (Director director : filmDirectors) {
+                filmDirectorsWithName.add(directorService.getDirector(director.getId()));
+            }
+
+            film.setDirectors(filmDirectorsWithName);
+
+            filmDirectorsStorage.update(film);
+        } else {
+            filmDirectorsStorage.removeAll(film.getId());
+        }
+
         int mpaId = film.getMpa().getId();
         filmStorage.update(film, mpaId);
 
         film = filmStorage.findFilm(film.getId());
         film.setGenres(new ArrayList<>(filmGenresStorage.findAll(film.getId())));
-
+        film.setDirectors(new ArrayList<>(filmDirectorsStorage.findAll(film.getId())));
         return film;
+    }
+
+    public void remove(long filmId) {
+        Film film = findFilm(filmId);
+
+        filmStorage.remove(film);
     }
 
     public void addLike(long filmId, long userId) {

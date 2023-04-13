@@ -106,6 +106,8 @@ public class FilmGenresDbStorage implements FilmGenresStorage {
     public void remove(long filmId, int genreId) {
         String sql = "DELETE FROM FILM_GENRES WHERE film_id = ? AND genre_id = ?";
         jdbcTemplate.update(sql, filmId, genreId);
+
+        log.info(String.format("Все жанры фильма с ID %d успешно удалены.", filmId));
     }
 
     @Override

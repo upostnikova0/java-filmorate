@@ -14,7 +14,7 @@ import java.util.Set;
 
 @Data
 @Builder
-public class Film implements Comparable<Film> {
+public class Film {
     private Long id;
     @NotBlank
     private String name;
@@ -26,11 +26,7 @@ public class Film implements Comparable<Film> {
     private Mpa mpa;
     private List<Genre> genres;
     private Set<Long> likes;
-
-    @Override
-    public int compareTo(Film o) {
-        return this.likes.size() - o.getLikes().size();
-    }
+    private List<Director> directors;
 
     public Map<String, Object> toMap() {
         Map<String, Object> values = new HashMap<>();

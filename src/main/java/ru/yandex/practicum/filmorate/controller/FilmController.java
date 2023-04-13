@@ -25,10 +25,7 @@ public class FilmController {
         return filmService.add(film);
     }
 
-    @PutMapping
-    public Film update(@Valid @RequestBody Film film) {
-        return filmService.update(film);
-    }
+
 
     @GetMapping
     public Collection<Film> findAll() {
@@ -38,6 +35,16 @@ public class FilmController {
     @GetMapping("/{filmId}")
     public Film getFilm(@Valid @PathVariable("filmId") Long filmId) {
         return filmService.findFilm(filmId);
+    }
+
+    @PutMapping
+    public Film update(@Valid @RequestBody Film film) {
+        return filmService.update(film);
+    }
+
+    @DeleteMapping("/{filmId}")
+    public void delete(@Valid @PathVariable("filmId") Long filmId) {
+        filmService.remove(filmId);
     }
 
     @PutMapping("/{id}/like/{userId}")
@@ -58,5 +65,11 @@ public class FilmController {
     @GetMapping("/common")
     public Collection<Film> getCommonFilms(@RequestParam Long userId, @RequestParam Long friendId) {
         return filmService.getCommonFilms(userId, friendId);
+    }
+
+    @GetMapping("/director/{directorId}")
+    public Collection<Film> getSortedFilmsByYearOrLikes(@PathVariable("directorId") Long directorId,
+                                                        @RequestParam(required = false) String sortBy) {
+        return filmService.getSortedFilmsByDirectorId(directorId, sortBy);
     }
 }
