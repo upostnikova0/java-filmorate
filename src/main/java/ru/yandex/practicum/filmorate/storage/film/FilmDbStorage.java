@@ -148,6 +148,7 @@ public class FilmDbStorage implements FilmStorage {
                 .directors(new ArrayList<>())
                 .build();
     }
+
     @Override
     public Collection<Film> searchFilms(Optional<String> query, List<String> by) {
         List<Film> searchedFilms = new ArrayList<>();
