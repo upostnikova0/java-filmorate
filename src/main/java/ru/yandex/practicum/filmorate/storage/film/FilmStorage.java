@@ -22,6 +22,3 @@ public interface FilmStorage {
 
     List<Film> getFilmSearch(String query, String by);
 }
-
-
-
