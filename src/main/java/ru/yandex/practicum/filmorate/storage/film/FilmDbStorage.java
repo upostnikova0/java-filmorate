@@ -100,6 +100,7 @@ public class FilmDbStorage implements FilmStorage {
                         .name(rs.getString("mpa_rating_name"))
                         .build())
                 .genres(new ArrayList<>())
+                .directors(new ArrayList<>())
                 .build();
     }
 }

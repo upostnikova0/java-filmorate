@@ -10,7 +10,7 @@ import java.util.Map;
 public interface FilmGenresStorage {
     void addGenre(long filmId, int genreId);
 
-    public void addGenreList(long filmId, Collection<Genre> genres);
+    void addGenreList(long filmId, Collection<Genre> genres);
 
     Genre findGenre(long filmId, int genreId);
 
