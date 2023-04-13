@@ -18,6 +18,7 @@ public interface FilmStorage {
     Film remove(Film film);
 
     Collection<Film> getCommonFilms(Long userId, Long friendId);
+
     Collection<Film> searchFilms(Optional<String> query, List<String> by);
 
 }
