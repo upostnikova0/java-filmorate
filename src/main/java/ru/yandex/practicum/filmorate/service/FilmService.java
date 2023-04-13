@@ -288,7 +288,7 @@ public class FilmService {
         ResponseEntity.ok(film);
     }
 
-    public Collection<Film> searchFilms(Optional<String> query, List<String> by) {
+    public List<Film> searchFilms(Optional<String> query, List<String> by) {
         return filmStorage.searchFilms(query, by);
     }
 }
