@@ -1,10 +1,15 @@
 package ru.yandex.practicum.filmorate.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ReviewNotFoundException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Review;
+import ru.yandex.practicum.filmorate.model.enums.EventType;
+import ru.yandex.practicum.filmorate.model.enums.OperationType;
+import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
 
 import java.util.List;
@@ -12,11 +17,22 @@ import java.util.TreeSet;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class ReviewService {
     private final ReviewStorage reviewStorage;
+    private final EventStorage eventStorage;
     private final FilmService filmService;
     private final UserService userService;
+
+    @Autowired
+    public ReviewService(@Qualifier("reviewDbStorage") ReviewStorage reviewStorage,
+                         @Qualifier("eventDbStorage") EventStorage eventStorage,
+                         FilmService filmService,
+                         UserService userService) {
+        this.reviewStorage = reviewStorage;
+        this.eventStorage = eventStorage;
+        this.filmService = filmService;
+        this.userService = userService;
+    }
 
     public Review create(Review review) {
         checkUserAndFilmIsExists(review);
@@ -24,6 +40,14 @@ public class ReviewService {
         reviewStorage.create(review);
         review.setLikes(new TreeSet<>());
         review.setDislikes(new TreeSet<>());
+
+        eventStorage.add(Event.builder()
+                .timestamp(System.currentTimeMillis())
+                .userId(review.getUserId())
+                .eventType(EventType.REVIEW)
+                .operation(OperationType.ADD)
+                .entityId(review.getReviewId())
+                .build());
         return review;
     }
 
@@ -34,13 +58,33 @@ public class ReviewService {
 
     public Review update(Review review) {
         checkUserAndFilmIsExists(review);
-        findById(review.getReviewId());
+        Review review1 = findById(review.getReviewId());
+
+        if (review1  != null) {
+            eventStorage.add(Event.builder()
+                    .timestamp(System.currentTimeMillis())
+                    .userId(review1.getUserId())
+                    .eventType(EventType.REVIEW)
+                    .operation(OperationType.UPDATE)
+                    .entityId(review1.getReviewId())
+                    .build());
+        }
         return reviewStorage.update(review);
     }
 
     public void delete(long reviewId) {
-        findById(reviewId);
-        reviewStorage.delete(reviewId);
+        Review review = findById(reviewId);
+        if (review != null) {
+            eventStorage.add(Event.builder()
+                    .timestamp(System.currentTimeMillis())
+                    .userId(review.getUserId())
+                    .eventType(EventType.REVIEW)
+                    .operation(OperationType.REMOVE)
+                    .entityId(review.getReviewId())
+                    .build());
+
+            reviewStorage.delete(reviewId);
+        }
     }
 
     public void addOrDeleteLikeOrDislike(long reviewId, long userId, String likeOrDislike, String requestMethod) {

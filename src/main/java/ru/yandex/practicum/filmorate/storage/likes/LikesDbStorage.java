@@ -22,7 +22,7 @@ public class LikesDbStorage implements LikesStorage {
     public void add(long filmId, long userId) {
         String sql = "INSERT INTO LIKES (film_id, user_id) VALUES (?, ?)";
         jdbcTemplate.update(sql, filmId, userId);
-        log.info("Пользователь с ID: {} добавил лайк фильму с ID: {}.", filmId, userId);
+        log.info("Пользователь с ID: {} добавил лайк фильму с ID: {}.", userId, filmId);
     }
 
     @Override
@@ -37,6 +37,13 @@ public class LikesDbStorage implements LikesStorage {
         jdbcTemplate.update(sql, userId);
 
         log.info(String.format("Удалены все лайки от пользователя с ID %d.", userId));
+    }
+
+    @Override
+    public boolean isLikeExist(long filmId, long userId) {
+        String sql = "SELECT * FROM LIKES WHERE film_id = ? AND user_id = ?";
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(sql, filmId, userId);
+        return userRows.next();
     }
 
     @Override

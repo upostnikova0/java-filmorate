@@ -15,6 +15,7 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import ru.yandex.practicum.filmorate.exception.ReviewNotFoundException;
 import ru.yandex.practicum.filmorate.model.Review;
 import ru.yandex.practicum.filmorate.storage.director.DirectorDbStorage;
+import ru.yandex.practicum.filmorate.storage.event.EventDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.filmdirectors.FilmDirectorsDbStorage;
 import ru.yandex.practicum.filmorate.storage.filmgenres.FilmGenresDbStorage;
@@ -64,14 +65,15 @@ public class ReviewServiceTest {
         MpaDbStorage mpaDbStorage = new MpaDbStorage(jdbcTemplate);
         FilmDirectorsDbStorage filmDirectorsDbStorage = new FilmDirectorsDbStorage(jdbcTemplate);
         DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
+        EventDbStorage eventDbStorage = new EventDbStorage(jdbcTemplate);
 
         GenreService genreService = new GenreService(genreDbStorage);
-        DirectorService directorService = new DirectorService(directorDbStorage, filmDirectorsDbStorage);
+        DirectorService directorService = new DirectorService(directorDbStorage);
         MpaService mpaService = new MpaService(mpaDbStorage);
-        UserService userService = new UserService(userDbStorage, friendDbStorage, likesDbStorage);
-        FilmService filmService = new FilmService(filmDbStorage, filmGenresDbStorage, likesDbStorage, filmDirectorsDbStorage,
+        UserService userService = new UserService(userDbStorage, friendDbStorage, eventDbStorage);
+        FilmService filmService = new FilmService(filmDbStorage, filmGenresDbStorage, likesDbStorage, filmDirectorsDbStorage, eventDbStorage,
                 userService, mpaService, genreService, directorService);
-        reviewService = new ReviewService(reviewDbStorage, filmService, userService);
+        reviewService = new ReviewService(reviewDbStorage, eventDbStorage, filmService, userService);
 
         review1 = Review.builder()
                 .content("Тупое Г тупого Г-НА!")
