@@ -5,10 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.model.enums.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Director;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.filmdirectors.FilmDirectorsStorage;
 import ru.yandex.practicum.filmorate.storage.filmgenres.FilmGenresStorage;
@@ -26,6 +26,7 @@ public class FilmService {
     private final FilmGenresStorage filmGenresStorage;
     private final LikesStorage likesStorage;
     private final FilmDirectorsStorage filmDirectorsStorage;
+    private final EventStorage eventStorage;
     private final UserService userService;
     private final MpaService mpaService;
     private final GenreService genreService;
@@ -36,6 +37,7 @@ public class FilmService {
                        @Qualifier("filmGenresDbStorage") FilmGenresStorage filmGenresStorage,
                        @Qualifier("likesDbStorage") LikesStorage likesStorage,
                        @Qualifier("filmDirectorsDbStorage") FilmDirectorsStorage filmDirectorsStorage,
+                       @Qualifier("eventDbStorage") EventStorage eventStorage,
                        UserService userService,
                        MpaService mpaService,
                        GenreService genreService,
@@ -45,6 +47,7 @@ public class FilmService {
         this.filmGenresStorage = filmGenresStorage;
         this.likesStorage = likesStorage;
         this.filmDirectorsStorage = filmDirectorsStorage;
+        this.eventStorage = eventStorage;
         this.userService = userService;
         this.mpaService = mpaService;
         this.genreService = genreService;
@@ -199,13 +202,35 @@ public class FilmService {
     public void addLike(long filmId, long userId) {
         findFilm(filmId);
         userService.findUser(userId);
-        likesStorage.add(filmId, userId);
+
+        if (!likesStorage.isLikeExist(filmId, userId)) {
+            likesStorage.add(filmId, userId);
+
+            eventStorage.add(Event.builder()
+                    .timestamp(System.currentTimeMillis())
+                    .userId(userId)
+                    .eventType(EventType.LIKE)
+                    .operation(OperationType.ADD)
+                    .entityId(filmId)
+                    .build());
+        }
     }
 
     public void deleteLike(long filmId, long userId) {
         findFilm(filmId);
         userService.findUser(userId);
-        likesStorage.remove(filmId, userId);
+
+        if (likesStorage.isLikeExist(filmId, userId)) {
+            likesStorage.remove(filmId, userId);
+
+            eventStorage.add(Event.builder()
+                    .timestamp(System.currentTimeMillis())
+                    .userId(userId)
+                    .eventType(EventType.LIKE)
+                    .operation(OperationType.REMOVE)
+                    .entityId(filmId)
+                    .build());
+        }
     }
 
     public Collection<Film> getPopular(Integer count, Integer genreId, Integer year) {

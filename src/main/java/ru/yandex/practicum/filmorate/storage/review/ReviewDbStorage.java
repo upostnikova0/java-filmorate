@@ -11,7 +11,7 @@ import ru.yandex.practicum.filmorate.model.Review;
 
 import java.util.*;
 
-@Component
+@Component("reviewDbStorage")
 @RequiredArgsConstructor
 public class ReviewDbStorage implements ReviewStorage {
     private final JdbcTemplate jdbcTemplate;

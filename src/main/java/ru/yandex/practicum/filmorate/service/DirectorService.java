@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.storage.director.DirectorStorage;
-import ru.yandex.practicum.filmorate.storage.filmdirectors.FilmDirectorsStorage;
 
 import java.util.Collection;
 
@@ -13,12 +12,9 @@ import java.util.Collection;
 @Service
 public class DirectorService {
     private final DirectorStorage directorStorage;
-    private final FilmDirectorsStorage filmDirectorsStorage;
 
-    public DirectorService(@Qualifier("directorsDbStorage") DirectorStorage directorStorage,
-                           @Qualifier("filmDirectorsDbStorage") FilmDirectorsStorage filmDirectorsStorage) {
+    public DirectorService(@Qualifier("directorsDbStorage") DirectorStorage directorStorage) {
         this.directorStorage = directorStorage;
-        this.filmDirectorsStorage = filmDirectorsStorage;
     }
 
     public Director create(Director director) {
@@ -44,7 +40,6 @@ public class DirectorService {
     public void remove(long directorId) {
         Director director = directorStorage.find(directorId);
 
-        filmDirectorsStorage.removeAllByDirector(directorId);
         directorStorage.remove(director);
     }
 }

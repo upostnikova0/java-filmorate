@@ -5,7 +5,8 @@ public enum EventType {
     REVIEW("REVIEW"),
     FRIEND("FRIEND");
 
-    private String name;
+    private final String name;
+
     EventType(String name) {
         this.name = name;
     }
