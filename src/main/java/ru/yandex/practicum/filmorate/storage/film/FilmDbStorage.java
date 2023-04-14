@@ -88,6 +88,44 @@ public class FilmDbStorage implements FilmStorage {
         return jdbcTemplate.query(sqlQuery, FilmDbStorage::filmMapper, userId, friendId);
     }
 
+    @Override
+    public Collection<Film> getPopular(int count, int genreId, int year) {
+        String sqlQuery = "SELECT * FROM films " +
+                "LEFT JOIN LIKES ON films.film_id = LIKES.film_id " +
+                "LEFT JOIN MPA_RATING M ON M.MPA_RATING_ID = FILMS.MPA_RATING_ID " +
+                "GROUP BY films.film_id " +
+                "ORDER BY COUNT(LIKES.user_id) DESC " +
+                "LIMIT ?";
+
+        if (genreId != 0 && year != 0) {
+            sqlQuery = "SELECT * FROM films " +
+                    "LEFT JOIN LIKES ON films.film_id = LIKES.film_id " +
+                    "LEFT JOIN MPA_RATING M ON M.MPA_RATING_ID = FILMS.MPA_RATING_ID " +
+                    "WHERE EXTRACT(YEAR FROM release_date) = ? AND films.film_id IN (" +
+                    "SELECT film_id FROM film_genres WHERE genre_id = ?) " +
+                    "GROUP BY films.film_id " +
+                    "ORDER BY COUNT(LIKES.user_id) DESC " +
+                    "LIMIT ?";
+
+            return jdbcTemplate.query(sqlQuery, FilmDbStorage::filmMapper, year, genreId, count);
+        }
+
+        if (genreId != 0 || year != 0) {
+            sqlQuery = "SELECT * FROM films " +
+                    "LEFT JOIN LIKES ON films.film_id = LIKES.film_id " +
+                    "LEFT JOIN MPA_RATING M ON M.MPA_RATING_ID = FILMS.MPA_RATING_ID " +
+                    "WHERE EXTRACT(YEAR FROM release_date) = ? OR films.film_id IN (" +
+                    "SELECT film_id FROM film_genres WHERE genre_id = ?) " +
+                    "GROUP BY films.film_id " +
+                    "ORDER BY COUNT(LIKES.user_id) DESC " +
+                    "LIMIT ?";
+
+            return jdbcTemplate.query(sqlQuery, FilmDbStorage::filmMapper, year, genreId, count);
+        }
+
+        return jdbcTemplate.query(sqlQuery, FilmDbStorage::filmMapper, count);
+    }
+
     public static Film filmMapper(ResultSet rs, int rowNum) throws SQLException {
         return Film.builder()
                 .id(rs.getLong("film_id"))
