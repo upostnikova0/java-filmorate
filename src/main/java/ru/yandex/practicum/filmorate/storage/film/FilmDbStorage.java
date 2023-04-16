@@ -133,6 +133,21 @@ public class FilmDbStorage implements FilmStorage {
         return jdbcTemplate.query(sqlQuery, FilmDbStorage::filmMapper, count);
     }
 
+//    @Override
+//    public Collection<Film> searchByTitle(String query) {
+//        String sql = "SELECT * FROM FILMS WHERE LOWER(NAME) LIKE LOWER('%?%')";
+//        return jdbcTemplate.query(sql, FilmDbStorage::filmMapper, query);
+//    }
+//
+//    @Override
+//    public Collection<Film> searchByDirector(String query) {
+//        String sql = "SELECT * from FILMS " +
+//                "LEFT JOIN FILM_DIRECTORS FD ON FILMS.film_id = FD.film_id " +
+//                "LEFT JOIN DIRECTORS D ON D.director_id = FD.director_id " +
+//                "WHERE LOWER(D.director_name) LIKE LOWER('%?%')";
+//        return jdbcTemplate.query(sql, FilmDbStorage::filmMapper, query);
+//    }
+
     public static Film filmMapper(ResultSet rs, int rowNum) throws SQLException {
         return Film.builder()
                 .id(rs.getLong("film_id"))
