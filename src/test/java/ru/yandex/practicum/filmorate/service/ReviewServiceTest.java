@@ -72,7 +72,7 @@ public class ReviewServiceTest {
         MpaService mpaService = new MpaService(mpaDbStorage);
         UserService userService = new UserService(userDbStorage, friendDbStorage, eventDbStorage);
         FilmService filmService = new FilmService(filmDbStorage, filmGenresDbStorage, likesDbStorage, filmDirectorsDbStorage, eventDbStorage,
-                userService, mpaService, genreService, directorService);
+                userService, genreService, directorService);
         reviewService = new ReviewService(reviewDbStorage, eventDbStorage, filmService, userService);
 
         review1 = Review.builder()
