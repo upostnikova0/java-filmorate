@@ -60,7 +60,7 @@ public class ReviewService {
         checkUserAndFilmIsExists(review);
         Review review1 = findById(review.getReviewId());
 
-        if (review1  != null) {
+        if (review1 != null) {
             eventStorage.add(Event.builder()
                     .timestamp(System.currentTimeMillis())
                     .userId(review1.getUserId())

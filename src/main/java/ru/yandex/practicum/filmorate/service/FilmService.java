@@ -5,9 +5,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.model.enums.*;
+import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.enums.EventType;
+import ru.yandex.practicum.filmorate.model.enums.OperationType;
 import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.filmdirectors.FilmDirectorsStorage;
@@ -28,7 +33,6 @@ public class FilmService {
     private final FilmDirectorsStorage filmDirectorsStorage;
     private final EventStorage eventStorage;
     private final UserService userService;
-    private final MpaService mpaService;
     private final GenreService genreService;
     private final DirectorService directorService;
 
@@ -39,7 +43,6 @@ public class FilmService {
                        @Qualifier("filmDirectorsDbStorage") FilmDirectorsStorage filmDirectorsStorage,
                        @Qualifier("eventDbStorage") EventStorage eventStorage,
                        UserService userService,
-                       MpaService mpaService,
                        GenreService genreService,
                        DirectorService directorService
     ) {
@@ -49,7 +52,6 @@ public class FilmService {
         this.filmDirectorsStorage = filmDirectorsStorage;
         this.eventStorage = eventStorage;
         this.userService = userService;
-        this.mpaService = mpaService;
         this.genreService = genreService;
         this.directorService = directorService;
     }
@@ -263,6 +265,71 @@ public class FilmService {
 
     public Collection<Film> getCommonFilms(Long userId, Long friendId) {
         return filmStorage.getCommonFilms(userId, friendId);
+    }
+
+    public Collection<Film> search(String query, String by) {
+        List<Film> searchFilms = new ArrayList<>();
+        List<Film> allFilms = new ArrayList<>(filmStorage.findAll());
+        List<Map<Long, Genre>> allGenres = filmGenresStorage.findAll();
+        List<Map<Long, Director>> allDirectors = filmDirectorsStorage.findAll();
+
+        if (query == null || query.isBlank()) {
+            int count = 10;
+            int genreId = 0;
+            int year = 0;
+            return getPopular(count, genreId, year);
+        } else {
+            if (by != null) {
+                query = query.toLowerCase();
+                String[] sortBy = by.toLowerCase().replaceAll(" ", "").split(",");
+                if (sortBy.length == 1 && sortBy[0].equals("title")) {
+                    searchFilms.addAll(findFilmByTitle(query, allFilms));
+                    return getFilmsWithAllFields(searchFilms, allGenres, allDirectors);
+                } else if (sortBy.length == 1 && sortBy[0].equals("director")) {
+                    searchFilms.addAll(findFilmByDirector(query, allFilms));
+                    return getFilmsWithAllFields(searchFilms, allGenres, allDirectors);
+                } else if (sortBy.length == 2
+                        && ((sortBy[0].equals("title") && sortBy[1].equals("director")
+                        || (sortBy[0].equals("director") && sortBy[1].equals("title"))))
+                ) {
+                    searchFilms.addAll(findFilmByDirector(query, allFilms));
+                    searchFilms.addAll(findFilmByTitle(query, allFilms));
+                    return getFilmsWithAllFields(searchFilms, allGenres, allDirectors);
+                } else {
+                    throw new FilmNotFoundException("Недостаточно параметров для поиска.");
+                }
+            }
+        }
+        throw new FilmNotFoundException("Недостаточно параметров для поиска.");
+    }
+
+    private List<Film> findFilmByTitle(String query, List<Film> allFilms) {
+        List<Film> filmList = new ArrayList<>();
+        for (Film film : allFilms) {
+            if (film.getName().toLowerCase().contains(query)) {
+                filmList.add(film);
+            }
+        }
+
+        return filmList;
+    }
+
+    private List<Film> findFilmByDirector(String query, List<Film> allFilms) {
+        List<Map<Long, Director>> allDirectorsMap = new ArrayList<>(filmDirectorsStorage.findAll());
+        List<Film> filmsByDirector = new ArrayList<>();
+        for (Map<Long, Director> entry : allDirectorsMap) {
+            for (Long filmId : entry.keySet()) {
+                if (entry.get(filmId).getName().toLowerCase().contains(query)) {
+                    for (Film film : allFilms) {
+                        if (film.getId().equals(filmId)) {
+                            filmsByDirector.add(film);
+                        }
+                    }
+                }
+            }
+        }
+
+        return filmsByDirector;
     }
 
     private void checkValidity(Film film) {
