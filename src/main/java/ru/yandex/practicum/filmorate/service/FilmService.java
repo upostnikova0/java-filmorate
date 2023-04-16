@@ -5,10 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.Director;
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.*;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.filmdirectors.FilmDirectorsStorage;
 import ru.yandex.practicum.filmorate.storage.filmgenres.FilmGenresStorage;
@@ -18,6 +17,7 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.*;
 import java.util.stream.Collectors;
+
 
 @Slf4j
 @Service
@@ -208,59 +208,102 @@ public class FilmService {
         likesStorage.remove(filmId, userId);
     }
 
-    public Collection<Film> getPopular(Integer count) {
-        Collection<Long> popularFilmsId = likesStorage.getPopular(count);
-        List<Film> popularFilms = new ArrayList<>();
+    public Collection<Film> getPopular(Integer count, Integer genreId, Integer year) {
+        Map<Long, Film> popularFilms = filmStorage.getPopular(count, genreId, year).stream().collect(Collectors.toMap(Film::getId, film -> film));
+        List<Map<Long, Genre>> allGenres = filmGenresStorage.findAll();
+        List<Map<Long, Director>> allDirectors = filmDirectorsStorage.findAll();
 
-        if (popularFilmsId.size() == count) {
-            for (Long filmId : popularFilmsId) {
-                Film film = filmStorage.findFilm(filmId);
-                film.setMpa(mpaService.getMpa(film.getMpa().getId()));
-                film.setGenres(new ArrayList<>(filmGenresStorage.findAll(filmId)));
-                popularFilms.add(film);
-            }
-
-            return popularFilms;
+        if (popularFilms.size() == 0) {
+            return popularFilms.values();
         }
 
-        if (popularFilmsId.size() < count) {
-            for (Long filmId : popularFilmsId) {
-                Film film = filmStorage.findFilm(filmId);
-                film.setMpa(mpaService.getMpa(film.getMpa().getId()));
-                film.setGenres(new ArrayList<>(filmGenresStorage.findAll(filmId)));
-                popularFilms.add(film);
-            }
-
-            Collection<Film> allFilms = filmStorage.findAll();
-            for (Film film : allFilms) {
-                film.setMpa(mpaService.getMpa(film.getMpa().getId()));
-                film.setGenres(new ArrayList<>(filmGenresStorage.findAll(film.getId())));
-                if (!popularFilms.contains(film)) {
-                    popularFilms.add(film);
+        if (!allGenres.isEmpty()) {
+            for (Map<Long, Genre> map : allGenres) {
+                for (Long filmId : map.keySet()) {
+                    popularFilms.get(filmId).getGenres().add(map.get(filmId));
                 }
             }
-
-            return popularFilms.stream()
-                    .limit(count)
-                    .collect(Collectors.toList());
         }
 
-        if (popularFilmsId.isEmpty()) {
-            popularFilms = new ArrayList<>(filmStorage.findAll());
-            for (Film film : popularFilms) {
-                film.setMpa(mpaService.getMpa(film.getMpa().getId()));
-                film.setGenres(new ArrayList<>(filmGenresStorage.findAll(film.getId())));
+        if (!allDirectors.isEmpty()) {
+            for (Map<Long, Director> map : allDirectors) {
+                for (Long filmId : map.keySet()) {
+                    popularFilms.get(filmId).getDirectors().add(map.get(filmId));
+                }
             }
-            return popularFilms.stream()
-                    .limit(count)
-                    .collect(Collectors.toList());
         }
 
-        return popularFilms;
+        return popularFilms.values();
     }
+
 
     public Collection<Film> getCommonFilms(Long userId, Long friendId) {
         return filmStorage.getCommonFilms(userId, friendId);
+    }
+
+    public Collection<Film> search(String query, String by) {
+        List<Film> searchFilms = new ArrayList<>();
+        List<Film> allFilms = new ArrayList<>(filmStorage.findAll());
+        List<Map<Long, Genre>> allGenres = filmGenresStorage.findAll();
+        List<Map<Long, Director>> allDirectors = filmDirectorsStorage.findAll();
+
+        if (query == null || query.isBlank()) {
+            int count = 10;
+            int genreId = 0;
+            int year = 0;
+            return getPopular(count, genreId, year);
+        } else {
+            if (by != null) {
+                query = query.toLowerCase();
+                String[] sortBy = by.toLowerCase().replaceAll(" ", "").split(",");
+                if (sortBy.length == 1 && sortBy[0].equals("title")) {
+                    searchFilms.addAll(findFilmByTitle(query, allFilms));
+                    return getFilmsWithAllFields(searchFilms, allGenres, allDirectors);
+                } else if (sortBy.length == 1 && sortBy[0].equals("director")) {
+                    searchFilms.addAll(findFilmByDirector(query, allFilms));
+                    return getFilmsWithAllFields(searchFilms, allGenres, allDirectors);
+                } else if (sortBy.length == 2
+                        && ((sortBy[0].equals("title") && sortBy[1].equals("director")
+                        || (sortBy[0].equals("director") && sortBy[1].equals("title"))))
+                ) {
+                    searchFilms.addAll(findFilmByDirector(query, allFilms));
+                    searchFilms.addAll(findFilmByTitle(query, allFilms));
+                    return getFilmsWithAllFields(searchFilms, allGenres, allDirectors);
+                } else {
+                    throw new FilmNotFoundException("Недостаточно параметров для поиска.");
+                }
+            }
+        }
+        throw new FilmNotFoundException("Недостаточно параметров для поиска.");
+    }
+
+    private List<Film> findFilmByTitle(String query, List<Film> allFilms) {
+        List<Film> filmList = new ArrayList<>();
+        for (Film film : allFilms) {
+            if (film.getName().toLowerCase().contains(query)) {
+                filmList.add(film);
+            }
+        }
+
+        return filmList;
+    }
+
+    private List<Film> findFilmByDirector(String query, List<Film> allFilms) {
+        List<Map<Long, Director>> allDirectorsMap = new ArrayList<>(filmDirectorsStorage.findAll());
+        List<Film> filmsByDirector = new ArrayList<>();
+        for (Map<Long, Director> entry : allDirectorsMap) {
+            for (Long filmId : entry.keySet()) {
+                if (entry.get(filmId).getName().toLowerCase().contains(query)) {
+                    for (Film film : allFilms) {
+                        if (film.getId().equals(filmId)) {
+                            filmsByDirector.add(film);
+                        }
+                    }
+                }
+            }
+        }
+
+        return filmsByDirector;
     }
 
     private void checkValidity(Film film) {
@@ -286,9 +329,5 @@ public class FilmService {
             throw new ValidationException("duration");
         }
         ResponseEntity.ok(film);
-    }
-
-    public List<Film> searchFilms(Optional<String> query, List<String> by) {
-        return filmStorage.searchFilms(query, by);
     }
 }

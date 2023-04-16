@@ -56,8 +56,10 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public Collection<Film> getPopular(@RequestParam(required = false, defaultValue = "10") Integer count) {
-        return filmService.getPopular(count);
+    public Collection<Film> getPopular(@RequestParam(required = false, defaultValue = "10") Integer count,
+                                       @RequestParam(required = false, defaultValue = "0") Integer genreId,
+                                       @RequestParam(required = false, defaultValue = "0") Integer year) {
+        return filmService.getPopular(count, genreId, year);
     }
 
     @GetMapping("/common")
@@ -72,9 +74,7 @@ public class FilmController {
     }
 
     @GetMapping("/search")
-    protected Collection<Film> searchFilms(@RequestParam(name = "query") Optional<String> query,
-                                           @RequestParam(required = false, name = "by") List<String> by) {
-        log.info("Запрос на поиск фильмов...");
-        return filmService.searchFilms(query, by);
+    public Collection<Film> search(@RequestParam(required = false) String query, String by) {
+        return filmService.search(query, by);
     }
 }
