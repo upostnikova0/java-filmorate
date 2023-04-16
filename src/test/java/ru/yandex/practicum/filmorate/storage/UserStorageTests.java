@@ -9,7 +9,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.enums.EventType;
+import ru.yandex.practicum.filmorate.model.enums.OperationType;
+import ru.yandex.practicum.filmorate.storage.event.EventDbStorage;
 import ru.yandex.practicum.filmorate.storage.friends.FriendDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
 
@@ -26,9 +30,12 @@ public class UserStorageTests {
     private EmbeddedDatabase embeddedDatabase;
     private UserDbStorage userStorage;
     private FriendDbStorage friendDbStorage;
+    private EventDbStorage eventDbStorage;
     User user1;
     User user2;
     User user3;
+    Event event1;
+    Event event2;
 
 
     @BeforeEach
@@ -43,6 +50,7 @@ public class UserStorageTests {
 
         userStorage = new UserDbStorage(jdbcTemplate);
         friendDbStorage = new FriendDbStorage(jdbcTemplate);
+        eventDbStorage = new EventDbStorage(jdbcTemplate);
 
         user1 = User.builder().build();
         user1.setEmail("francesy@gmail.com");
@@ -61,6 +69,20 @@ public class UserStorageTests {
         user3.setLogin("yatebenedyadya");
         user3.setName("Styopa");
         user3.setBirthday(LocalDate.of(1980, Month.APRIL, 1));
+
+        event1 = Event.builder()
+                .timestamp(System.currentTimeMillis())
+                .userId(1L)
+                .eventType(EventType.FRIEND)
+                .operation(OperationType.ADD)
+                .entityId(2L).build();
+
+        event2 = Event.builder()
+                .timestamp(System.currentTimeMillis())
+                .userId(1L)
+                .eventType(EventType.FRIEND)
+                .operation(OperationType.REMOVE)
+                .entityId(2L).build();
     }
 
     @AfterEach
@@ -155,5 +177,27 @@ public class UserStorageTests {
 
         assertTrue(friendDbStorage.findAll(user1.getId()).isEmpty());
 
+    }
+
+    @Test
+    public void addEventWhenAddFriend() {
+        userStorage.add(user1);
+        userStorage.add(user2);
+
+        eventDbStorage.add(event1);
+
+        assertEquals(1, eventDbStorage.findAll(user1.getId()).size());
+    }
+
+    @Test
+    public void addEventWhenRemoveFriend() {
+        userStorage.add(user1);
+        userStorage.add(user2);
+
+        eventDbStorage.add(event1);
+        assertEquals(1, eventDbStorage.findAll(user1.getId()).size());
+
+        eventDbStorage.add(event1);
+        assertEquals(2, eventDbStorage.findAll(user1.getId()).size());
     }
 }

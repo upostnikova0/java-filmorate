@@ -50,8 +50,8 @@ public class FilmGenresDbStorage implements FilmGenresStorage {
     public Genre findGenre(long filmId, int genreId) {
         SqlRowSet userRows = jdbcTemplate.queryForRowSet(
                 "SELECT GENRE_ID = ? FROM FILM_GENRES JOIN GENRES " +
-                "ON FILM_GENRES.GENRE_ID = GENRES.GENRE_ID " +
-                "WHERE FILM_ID = ?",
+                        "ON FILM_GENRES.GENRE_ID = GENRES.GENRE_ID " +
+                        "WHERE FILM_ID = ?",
                 genreId,
                 filmId
         );
@@ -73,8 +73,8 @@ public class FilmGenresDbStorage implements FilmGenresStorage {
                 "ON FILM_GENRES.GENRE_ID = GENRES.GENRE_ID " +
                 "WHERE FILM_ID = ?";
         return jdbcTemplate.query(sql, (rs, rowNum) -> new Genre(
-                rs.getInt("genre_id"),
-                rs.getString("genre_name")),
+                        rs.getInt("genre_id"),
+                        rs.getString("genre_name")),
                 filmId
         );
     }
@@ -84,12 +84,12 @@ public class FilmGenresDbStorage implements FilmGenresStorage {
         String sql = "SELECT * FROM FILM_GENRES JOIN GENRES " +
                 "ON FILM_GENRES.GENRE_ID = GENRES.GENRE_ID ";
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
-                    Map<Long, Genre> result = new LinkedHashMap<>();
-                    result.put(rs.getLong("film_id"),
-                            new Genre(rs.getInt("genre_id"),
-                                    rs.getString("genre_name")));
-                    return result;
-                });
+            Map<Long, Genre> result = new LinkedHashMap<>();
+            result.put(rs.getLong("film_id"),
+                    new Genre(rs.getInt("genre_id"),
+                            rs.getString("genre_name")));
+            return result;
+        });
     }
 
     @Override

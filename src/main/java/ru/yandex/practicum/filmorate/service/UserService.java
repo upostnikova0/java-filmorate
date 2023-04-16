@@ -5,31 +5,32 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.model.enums.EventType;
+import ru.yandex.practicum.filmorate.model.enums.OperationType;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.friends.FriendStorage;
-import ru.yandex.practicum.filmorate.storage.likes.LikesStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 @Service
 public class UserService {
     private final UserStorage userStorage;
     private final FriendStorage friendStorage;
-    private final LikesStorage likesStorage;
+    private final EventStorage eventStorage;
 
     @Autowired
     public UserService(@Qualifier("userDbStorage") UserStorage userStorage,
                        @Qualifier("friendDbStorage") FriendStorage friendStorage,
-                       @Qualifier("likesDbStorage") LikesStorage likesStorage) {
+                       @Qualifier("eventDbStorage") EventStorage eventStorage) {
         this.userStorage = userStorage;
         this.friendStorage = friendStorage;
-        this.likesStorage = likesStorage;
+        this.eventStorage = eventStorage;
     }
 
     public User create(User user) {
@@ -60,7 +61,19 @@ public class UserService {
     public void addFriend(long userId, long friendId) {
         userStorage.findUser(userId);
         userStorage.findUser(friendId);
-        friendStorage.add(userId, friendId);
+
+        if (!friendStorage.isFriendsExist(userId, friendId)) {
+            friendStorage.add(userId, friendId);
+
+            eventStorage.add(Event.builder()
+                    .timestamp(System.currentTimeMillis())
+                    .userId(userId)
+                    .eventType(EventType.FRIEND)
+                    .operation(OperationType.ADD)
+                    .entityId(friendId)
+                    .build());
+            System.out.println("AAAAAAAAAAAAFFFFFFFFFFFF" + eventStorage.findAll(userId));
+        }
     }
 
     public Collection<User> getAllFriends(long id) {
@@ -71,7 +84,19 @@ public class UserService {
     public void deleteFriend(long id, long friendId) {
         userStorage.findUser(id);
         userStorage.findUser(friendId);
-        friendStorage.remove(id, friendId);
+
+        if (friendStorage.isFriendsExist(id, friendId)) {
+            friendStorage.remove(id, friendId);
+
+            eventStorage.add(Event.builder()
+                    .timestamp(System.currentTimeMillis())
+                    .userId(id)
+                    .eventType(EventType.FRIEND)
+                    .operation(OperationType.REMOVE)
+                    .entityId(friendId)
+                    .build());
+            System.out.println("DDDDDDDDDDDDDDDFFFFFFFFFFFF" + eventStorage.findAll(id));
+        }
     }
 
     public Collection<User> getCommonFriends(long id, long friendId) {
@@ -92,6 +117,11 @@ public class UserService {
         }
 
         return commonFriends;
+    }
+
+    public Collection<Event> getFeed(long id) {
+        findUser(id);
+        return eventStorage.findAll(id);
     }
 
     private void checkValidity(User user) {

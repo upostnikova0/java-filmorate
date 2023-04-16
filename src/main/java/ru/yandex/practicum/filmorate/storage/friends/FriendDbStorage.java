@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage.friends;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -41,6 +42,13 @@ public class FriendDbStorage implements FriendStorage {
     public void remove(long id, long friendId) {
         String sql = "DELETE FROM USER_FRIENDS WHERE user_id = ? AND friend_id = ?";
         jdbcTemplate.update(sql, id, friendId);
+    }
+
+    @Override
+    public boolean isFriendsExist(long userId, long friendId) {
+        String sql = "SELECT * FROM USER_FRIENDS WHERE user_id = ? AND friend_id = ?";
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(sql, userId, friendId);
+        return userRows.next();
     }
 
     @Override

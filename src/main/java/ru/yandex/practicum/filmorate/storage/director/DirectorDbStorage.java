@@ -34,9 +34,9 @@ public class DirectorDbStorage implements DirectorStorage {
     public Collection<Director> findAll() {
         String sqlQuery = "SELECT * FROM DIRECTORS";
         return jdbcTemplate.query(sqlQuery, (rs, rowNum) -> Director.builder()
-                        .id(rs.getLong("director_id"))
-                        .name(rs.getString("director_name"))
-                        .build()
+                .id(rs.getLong("director_id"))
+                .name(rs.getString("director_name"))
+                .build()
         );
     }
 

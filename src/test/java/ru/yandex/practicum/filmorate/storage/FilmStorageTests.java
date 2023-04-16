@@ -12,6 +12,9 @@ import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.enums.EventType;
+import ru.yandex.practicum.filmorate.model.enums.OperationType;
+import ru.yandex.practicum.filmorate.storage.event.EventDbStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.likes.LikesDbStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
@@ -34,11 +37,14 @@ public class FilmStorageTests {
     Film film2;
     User user1;
     User user2;
+    Event event1;
+    Event event2;
 
     private EmbeddedDatabase embeddedDatabase;
     private FilmDbStorage filmDbStorage;
     private UserDbStorage userDbStorage;
     private LikesDbStorage likesDbStorage;
+    private EventDbStorage eventDbStorage;
 
     @BeforeEach
     void beforeEach() {
@@ -54,6 +60,8 @@ public class FilmStorageTests {
         userDbStorage = new UserDbStorage(jdbcTemplate);
 
         likesDbStorage = new LikesDbStorage(jdbcTemplate);
+
+        eventDbStorage = new EventDbStorage(jdbcTemplate);
 
         mpa1 = Mpa.builder()
                 .id(1)
@@ -102,6 +110,20 @@ public class FilmStorageTests {
                 .birthday(LocalDate.of(1990, 12, 12))
                 .name("Ivan")
                 .build();
+
+        event1 = Event.builder()
+                .timestamp(System.currentTimeMillis())
+                .userId(1L)
+                .eventType(EventType.LIKE)
+                .operation(OperationType.ADD)
+                .entityId(2L).build();
+
+        event2 = Event.builder()
+                .timestamp(System.currentTimeMillis())
+                .userId(1L)
+                .eventType(EventType.LIKE)
+                .operation(OperationType.REMOVE)
+                .entityId(2L).build();
     }
 
     @AfterEach
@@ -166,7 +188,27 @@ public class FilmStorageTests {
 
         assertArrayEquals(filmDbStorage.findAll().toArray(),
                 filmDbStorage.getCommonFilms(user1.getId(), user2.getId()).toArray());
+    }
 
+    @Test
+    public void addEventWhenAddLike() {
+        userDbStorage.add(user1);
+        filmDbStorage.add(film2);
 
+        eventDbStorage.add(event1);
+
+        assertEquals(1, eventDbStorage.findAll(user1.getId()).size());
+    }
+
+    @Test
+    public void addEventWhenRemoveLike() {
+        userDbStorage.add(user1);
+        filmDbStorage.add(film2);
+
+        eventDbStorage.add(event1);
+        assertEquals(1, eventDbStorage.findAll(user1.getId()).size());
+
+        eventDbStorage.add(event1);
+        assertEquals(2, eventDbStorage.findAll(user1.getId()).size());
     }
 }

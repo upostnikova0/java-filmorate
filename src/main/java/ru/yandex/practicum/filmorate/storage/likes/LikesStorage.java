@@ -9,11 +9,11 @@ public interface LikesStorage {
 
     void remove(long userId);
 
+    boolean isLikeExist(long filmId, long userId);
+
     void removeAll(long filmId);
 
     Collection<Long> findAll(long filmId);
 
     Collection<Long> findAll();
-
-    Collection<Long> getPopular(int count);
 }
