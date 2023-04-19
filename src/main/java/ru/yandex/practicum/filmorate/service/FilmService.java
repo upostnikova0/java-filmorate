@@ -247,7 +247,9 @@ public class FilmService {
         if (!allGenres.isEmpty()) {
             for (Map<Long, Genre> map : allGenres) {
                 for (Long filmId : map.keySet()) {
-                    popularFilms.get(filmId).getGenres().add(map.get(filmId));
+                    if (popularFilms.get(filmId) != null) {
+                        popularFilms.get(filmId).getGenres().add(map.get(filmId));
+                    }
                 }
             }
         }
@@ -255,7 +257,9 @@ public class FilmService {
         if (!allDirectors.isEmpty()) {
             for (Map<Long, Director> map : allDirectors) {
                 for (Long filmId : map.keySet()) {
-                    popularFilms.get(filmId).getDirectors().add(map.get(filmId));
+                    if (popularFilms.get(filmId) != null) {
+                        popularFilms.get(filmId).getDirectors().add(map.get(filmId));
+                    }
                 }
             }
         }
