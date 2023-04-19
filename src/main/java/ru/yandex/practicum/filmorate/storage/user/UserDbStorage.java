@@ -95,7 +95,6 @@ public class UserDbStorage implements UserStorage {
                 ")\n" +
                 "ORDER BY COUNT(FILM_ID) DESC\n" +
                 ") AND f.FILM_ID NOT IN (SELECT FILM_ID FROM LIKES fl2 WHERE USER_ID = ?)\n" +
-                "GROUP BY f.FILM_ID\n" +
                 "ORDER BY f.FILM_ID";
 
         return jdbcTemplate.query(sqlQuery, FilmDbStorage::filmMapper, id, id, id, id, id);

@@ -34,8 +34,8 @@ public class EventDbStorage implements EventStorage {
 
     @Override
     public Collection<Event> findAll(long userId) {
-        String sql = "SELECT * FROM EVENTS WHERE USER_ID = ? "
-                + "ORDER BY EVENT_ID";
+        String sql = "SELECT * FROM EVENTS WHERE USER_ID = ? ";
+                //+ "ORDER BY EVENT_ID";
 
         return jdbcTemplate.query(sql, EventDbStorage::eventMapper, userId);
     }
