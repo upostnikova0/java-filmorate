@@ -122,6 +122,8 @@ public class FilmDbStorage implements FilmStorage {
                     "GROUP BY l.film_id, f.film_id " +
                     "ORDER BY COUNT(l.user_id) DESC " +
                     "LIMIT ?";
+
+            return jdbcTemplate.query(sqlQuery, FilmDbStorage::filmMapper, year, genreId, count);
         }
 
         return jdbcTemplate.query(sqlQuery, FilmDbStorage::filmMapper, count);
