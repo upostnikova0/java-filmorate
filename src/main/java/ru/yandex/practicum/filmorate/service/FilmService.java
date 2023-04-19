@@ -22,7 +22,6 @@ import ru.yandex.practicum.filmorate.storage.likes.LikesStorage;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -236,35 +235,18 @@ public class FilmService {
     }
 
     public Collection<Film> getPopular(Integer count, Integer genreId, Integer year) {
-        Map<Long, Film> popularFilms = filmStorage.getPopular(count, genreId, year).stream().collect(Collectors.toMap(Film::getId, film -> film));
+        List<Film> popularFilms = new ArrayList<>(filmStorage.getPopular(count, genreId, year));
         List<Map<Long, Genre>> allGenres = filmGenresStorage.findAll();
         List<Map<Long, Director>> allDirectors = filmDirectorsStorage.findAll();
 
         if (popularFilms.size() == 0) {
-            return popularFilms.values();
+            return popularFilms;
         }
 
-        if (!allGenres.isEmpty()) {
-            for (Map<Long, Genre> map : allGenres) {
-                for (Long filmId : map.keySet()) {
-                    if (popularFilms.get(filmId) != null) {
-                        popularFilms.get(filmId).getGenres().add(map.get(filmId));
-                    }
-                }
-            }
-        }
+        popularFilms = new ArrayList<>(getFilmsWithAllFields(popularFilms, allGenres, allDirectors));
+        log.info("Популярные фильмы: {}", popularFilms);
 
-        if (!allDirectors.isEmpty()) {
-            for (Map<Long, Director> map : allDirectors) {
-                for (Long filmId : map.keySet()) {
-                    if (popularFilms.get(filmId) != null) {
-                        popularFilms.get(filmId).getDirectors().add(map.get(filmId));
-                    }
-                }
-            }
-        }
-
-        return popularFilms.values();
+        return popularFilms;
     }
 
     public Collection<Film> getCommonFilms(Long userId, Long friendId) {
