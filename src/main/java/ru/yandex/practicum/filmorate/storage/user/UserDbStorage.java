@@ -51,10 +51,6 @@ public class UserDbStorage implements UserStorage {
         return new LinkedHashSet<>(
                 jdbcTemplate.query(sql, UserDbStorage::userMapper)
         );
-//        String sql = "SELECT * FROM USERS ";
-//        return new LinkedHashSet<>(
-//                jdbcTemplate.query(sql, UserDbStorage::userMapper)
-//        );
     }
 
     @Override
@@ -80,10 +76,6 @@ public class UserDbStorage implements UserStorage {
         jdbcTemplate.update(sqlQuery,
                 user.getId());
         log.info("Удален пользователь {}.", user);
-//        String sql = "DELETE FROM USERS WHERE user_id = ?";
-//        jdbcTemplate.update(sql, user.getId());
-//
-//        log.info("Удален пользователь {}.", user);
     }
 
     @Override
