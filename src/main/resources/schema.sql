@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS FILMS (
     release_date DATE,
     duration BIGINT,
     mpa_rating_id INTEGER,
+    deleted BOOL DEFAULT FALSE,
     CONSTRAINT films_pk PRIMARY KEY (film_id),
     FOREIGN KEY (mpa_rating_id) REFERENCES MPA_RATING (mpa_rating_id)
 );
@@ -39,6 +40,7 @@ CREATE TABLE IF NOT EXISTS USERS (
     login VARCHAR(100) NOT NULL,
     name VARCHAR(100) NOT NULL,
     birthday DATE,
+    deleted BOOL DEFAULT FALSE,
     CONSTRAINT users_pk PRIMARY KEY (user_id),
     CONSTRAINT user_email UNIQUE (email),
     CONSTRAINT user_login UNIQUE (login)
@@ -93,6 +95,7 @@ CREATE TABLE IF NOT EXISTS reviews (
 	user_id BIGINT NOT NULL,
 	film_id BIGINT NOT NULL,
 	useful BIGINT DEFAULT 0,
+    deleted BOOL DEFAULT FALSE,
 	CONSTRAINT reviews_pk PRIMARY KEY (review_id),
     FOREIGN KEY (user_id) REFERENCES users (user_id),
 	FOREIGN KEY (film_id) REFERENCES films (film_id)

@@ -4,9 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.enums.EventType;
 import ru.yandex.practicum.filmorate.model.enums.OperationType;
-import ru.yandex.practicum.filmorate.model.Event;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -34,9 +34,18 @@ public class EventDbStorage implements EventStorage {
 
     @Override
     public Collection<Event> findAll(long userId) {
-        String sql = "SELECT * FROM EVENTS WHERE USER_ID = ?";
+        String sql = "SELECT * FROM EVENTS WHERE USER_ID = ? "
+                + "ORDER BY EVENT_ID";
 
         return jdbcTemplate.query(sql, EventDbStorage::eventMapper, userId);
+    }
+
+    @Override
+    public void remove(long filmId, long userId) {
+        String sql = "DELETE FROM EVENTS WHERE film_id = ? AND USER_id = ?";
+        jdbcTemplate.update(sql, filmId, userId);
+
+
     }
 
     public static Event eventMapper(ResultSet rs, int rowNum) throws SQLException {

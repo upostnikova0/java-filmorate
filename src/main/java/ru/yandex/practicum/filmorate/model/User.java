@@ -22,6 +22,7 @@ public class User {
     private String name;
     @Past
     private LocalDate birthday;
+    private boolean deleted;
 
     private Set<Long> friends;
 
@@ -31,6 +32,7 @@ public class User {
         values.put("login", login);
         values.put("name", name);
         values.put("birthday", birthday);
+        values.put("deleted", deleted);
         return values;
     }
 }

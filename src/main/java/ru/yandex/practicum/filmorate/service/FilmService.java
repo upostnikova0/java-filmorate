@@ -6,9 +6,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
-import ru.yandex.practicum.filmorate.model.enums.*;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
-import ru.yandex.practicum.filmorate.model.*;
+import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.enums.EventType;
+import ru.yandex.practicum.filmorate.model.enums.OperationType;
 import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.filmdirectors.FilmDirectorsStorage;
@@ -18,7 +22,6 @@ import ru.yandex.practicum.filmorate.storage.likes.LikesStorage;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -201,17 +204,18 @@ public class FilmService {
         findFilm(filmId);
         userService.findUser(userId);
 
-        if (!likesStorage.isLikeExist(filmId, userId)) {
-            likesStorage.add(filmId, userId);
-
-            eventStorage.add(Event.builder()
-                    .timestamp(System.currentTimeMillis())
-                    .userId(userId)
-                    .eventType(EventType.LIKE)
-                    .operation(OperationType.ADD)
-                    .entityId(filmId)
-                    .build());
+        if (likesStorage.isLikeExist(filmId, userId)) {
+            likesStorage.remove(filmId, userId);
         }
+        likesStorage.add(filmId, userId);
+
+        eventStorage.add(Event.builder()
+                .timestamp(System.currentTimeMillis())
+                .userId(userId)
+                .eventType(EventType.LIKE)
+                .operation(OperationType.ADD)
+                .entityId(filmId)
+                .build());
     }
 
     public void deleteLike(long filmId, long userId) {
@@ -232,101 +236,22 @@ public class FilmService {
     }
 
     public Collection<Film> getPopular(Integer count, Integer genreId, Integer year) {
-        Map<Long, Film> popularFilms = filmStorage.getPopular(count, genreId, year).stream().collect(Collectors.toMap(Film::getId, film -> film));
+        List<Film> popularFilms = new ArrayList<>(filmStorage.getPopular(count, genreId, year));
         List<Map<Long, Genre>> allGenres = filmGenresStorage.findAll();
         List<Map<Long, Director>> allDirectors = filmDirectorsStorage.findAll();
 
         if (popularFilms.size() == 0) {
-            return popularFilms.values();
+            return popularFilms;
         }
 
-        if (!allGenres.isEmpty()) {
-            for (Map<Long, Genre> map : allGenres) {
-                for (Long filmId : map.keySet()) {
-                    popularFilms.get(filmId).getGenres().add(map.get(filmId));
-                }
-            }
-        }
+        popularFilms = new ArrayList<>(getFilmsWithAllFields(popularFilms, allGenres, allDirectors));
+        log.info("Популярные фильмы: {}", popularFilms);
 
-        if (!allDirectors.isEmpty()) {
-            for (Map<Long, Director> map : allDirectors) {
-                for (Long filmId : map.keySet()) {
-                    popularFilms.get(filmId).getDirectors().add(map.get(filmId));
-                }
-            }
-        }
-
-        return popularFilms.values();
+        return popularFilms;
     }
 
     public Collection<Film> getCommonFilms(Long userId, Long friendId) {
         return filmStorage.getCommonFilms(userId, friendId);
-    }
-
-    public Collection<Film> search(String query, String by) {
-        List<Film> searchFilms = new ArrayList<>();
-        List<Film> allFilms = new ArrayList<>(filmStorage.findAll());
-        List<Map<Long, Genre>> allGenres = filmGenresStorage.findAll();
-        List<Map<Long, Director>> allDirectors = filmDirectorsStorage.findAll();
-
-        if (query == null || query.isBlank()) {
-            int count = 10;
-            int genreId = 0;
-            int year = 0;
-            return getPopular(count, genreId, year);
-        } else {
-            if (by != null) {
-                query = query.toLowerCase();
-                String[] sortBy = by.toLowerCase().replaceAll(" ", "").split(",");
-                if (sortBy.length == 1 && sortBy[0].equals("title")) {
-                    searchFilms.addAll(findFilmByTitle(query, allFilms));
-                    return getFilmsWithAllFields(searchFilms, allGenres, allDirectors);
-                } else if (sortBy.length == 1 && sortBy[0].equals("director")) {
-                    searchFilms.addAll(findFilmByDirector(query, allFilms));
-                    return getFilmsWithAllFields(searchFilms, allGenres, allDirectors);
-                } else if (sortBy.length == 2
-                        && ((sortBy[0].equals("title") && sortBy[1].equals("director")
-                        || (sortBy[0].equals("director") && sortBy[1].equals("title"))))
-                ) {
-
-                    searchFilms.addAll(findFilmByDirector(query,allFilms));
-                    searchFilms.addAll(findFilmByTitle(query, allFilms));
-                    return getFilmsWithAllFields(searchFilms, allGenres, allDirectors);
-                } else {
-                    throw new FilmNotFoundException("Недостаточно параметров для поиска.");
-                }
-            }
-        }
-        throw new FilmNotFoundException("Недостаточно параметров для поиска.");
-    }
-
-    private List<Film> findFilmByTitle(String query, List<Film> allFilms) {
-        List<Film> filmList = new ArrayList<>();
-        for (Film film : allFilms) {
-            if (film.getName().toLowerCase().contains(query)) {
-                filmList.add(film);
-            }
-        }
-
-        return filmList;
-    }
-
-    private List<Film> findFilmByDirector(String query, List<Film> allFilms) {
-        List<Map<Long, Director>> allDirectorsMap = new ArrayList<>(filmDirectorsStorage.findAll());
-        List<Film> filmsByDirector = new ArrayList<>();
-        for (Map<Long, Director> entry : allDirectorsMap) {
-            for (Long filmId : entry.keySet()) {
-                if (entry.get(filmId).getName().toLowerCase().contains(query)) {
-                    for (Film film : allFilms) {
-                        if (film.getId().equals(filmId)) {
-                            filmsByDirector.add(film);
-                        }
-                    }
-                }
-            }
-        }
-
-        return filmsByDirector;
     }
 
     private void checkValidity(Film film) {
@@ -353,4 +278,9 @@ public class FilmService {
         }
         ResponseEntity.ok(film);
     }
+
+    public List<Film> getFilmSearch(String query, String by) {
+              return filmStorage.getFilmSearch(query, by);
+    }
+
 }

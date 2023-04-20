@@ -5,17 +5,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.model.enums.EventType;
-import ru.yandex.practicum.filmorate.model.enums.OperationType;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.enums.EventType;
+import ru.yandex.practicum.filmorate.model.enums.OperationType;
 import ru.yandex.practicum.filmorate.storage.event.EventStorage;
+import ru.yandex.practicum.filmorate.storage.filmgenres.FilmGenresStorage;
 import ru.yandex.practicum.filmorate.storage.friends.FriendStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -23,14 +29,17 @@ public class UserService {
     private final UserStorage userStorage;
     private final FriendStorage friendStorage;
     private final EventStorage eventStorage;
+    private final FilmGenresStorage filmGenresStorage;
 
     @Autowired
     public UserService(@Qualifier("userDbStorage") UserStorage userStorage,
                        @Qualifier("friendDbStorage") FriendStorage friendStorage,
-                       @Qualifier("eventDbStorage") EventStorage eventStorage) {
+                       @Qualifier("eventDbStorage") EventStorage eventStorage,
+                       @Qualifier("filmGenresDbStorage") FilmGenresStorage filmGenresStorage) {
         this.userStorage = userStorage;
         this.friendStorage = friendStorage;
         this.eventStorage = eventStorage;
+        this.filmGenresStorage = filmGenresStorage;
     }
 
     public User create(User user) {
@@ -72,7 +81,6 @@ public class UserService {
                     .operation(OperationType.ADD)
                     .entityId(friendId)
                     .build());
-            System.out.println("AAAAAAAAAAAAFFFFFFFFFFFF" + eventStorage.findAll(userId));
         }
     }
 
@@ -86,6 +94,8 @@ public class UserService {
         userStorage.findUser(friendId);
 
         if (friendStorage.isFriendsExist(id, friendId)) {
+            log.info(String.format("Пользователь с ID %d удалил из друзей пользователя с ID %d", id, friendId));
+
             friendStorage.remove(id, friendId);
 
             eventStorage.add(Event.builder()
@@ -95,7 +105,6 @@ public class UserService {
                     .operation(OperationType.REMOVE)
                     .entityId(friendId)
                     .build());
-            System.out.println("DDDDDDDDDDDDDDDFFFFFFFFFFFF" + eventStorage.findAll(id));
         }
     }
 
@@ -122,6 +131,23 @@ public class UserService {
     public Collection<Event> getFeed(long id) {
         findUser(id);
         return eventStorage.findAll(id);
+    }
+
+    public Collection<Film> getRecommendations(long id) {
+        findUser(id);
+        Collection<Film> recommendFilms = userStorage.getRecommendations(id);
+        List<Map<Long, Genre>> allGenres = filmGenresStorage.findAll();
+
+        if (allGenres != null) {
+            for (Map<Long, Genre> map : allGenres) {
+                for (Film film : recommendFilms) {
+                    if (map.containsKey(film.getId())) {
+                        film.getGenres().add(map.get(film.getId()));
+                    }
+                }
+            }
+        }
+        return recommendFilms;
     }
 
     private void checkValidity(User user) {

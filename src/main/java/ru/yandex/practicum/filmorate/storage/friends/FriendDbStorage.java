@@ -31,7 +31,7 @@ public class FriendDbStorage implements FriendStorage {
     public Collection<User> findAll(long id) {
         String sql = "SELECT FRIEND_ID, EMAIL, LOGIN, NAME, BIRTHDAY FROM USER_FRIENDS JOIN USERS U " +
                 "ON USER_FRIENDS.FRIEND_ID = U.USER_ID WHERE " +
-                "USER_FRIENDS.USER_ID = ?";
+                "USER_FRIENDS.USER_ID = ? AND u.deleted = false";
 
         return new ArrayList<>(
                 jdbcTemplate.query(sql, FriendDbStorage::friendMapper, id)

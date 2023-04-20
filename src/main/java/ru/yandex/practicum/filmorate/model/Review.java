@@ -26,6 +26,7 @@ public class Review {
     @NotNull
     private Long filmId;
     private Integer useful;
+    private boolean deleted;
     private Set<Long> likes;
     private Set<Long> dislikes;
 
@@ -36,6 +37,7 @@ public class Review {
         values.put("user_id", userId);
         values.put("film_id", filmId);
         values.put("useful", useful);
+        values.put("deleted", deleted);
         return values;
     }
 }

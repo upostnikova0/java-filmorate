@@ -8,4 +8,6 @@ public interface EventStorage {
     Event add(Event event);
 
     Collection<Event> findAll(long userId);
+
+    void remove(long filmId, long userId);
 }
