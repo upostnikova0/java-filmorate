@@ -22,7 +22,6 @@ import ru.yandex.practicum.filmorate.storage.filmgenres.FilmGenresDbStorage;
 import ru.yandex.practicum.filmorate.storage.friends.FriendDbStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreDbStorage;
 import ru.yandex.practicum.filmorate.storage.likes.LikesDbStorage;
-import ru.yandex.practicum.filmorate.storage.mpa.MpaDbStorage;
 import ru.yandex.practicum.filmorate.storage.review.ReviewDbStorage;
 import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
@@ -62,15 +61,13 @@ public class ReviewServiceTest {
         GenreDbStorage genreDbStorage = new GenreDbStorage(jdbcTemplate);
         FilmGenresDbStorage filmGenresDbStorage = new FilmGenresDbStorage(jdbcTemplate);
         LikesDbStorage likesDbStorage = new LikesDbStorage(jdbcTemplate);
-        MpaDbStorage mpaDbStorage = new MpaDbStorage(jdbcTemplate);
         FilmDirectorsDbStorage filmDirectorsDbStorage = new FilmDirectorsDbStorage(jdbcTemplate);
         DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
         EventDbStorage eventDbStorage = new EventDbStorage(jdbcTemplate);
 
         GenreService genreService = new GenreService(genreDbStorage);
         DirectorService directorService = new DirectorService(directorDbStorage);
-        MpaService mpaService = new MpaService(mpaDbStorage);
-        UserService userService = new UserService(userDbStorage, friendDbStorage, eventDbStorage);
+        UserService userService = new UserService(userDbStorage, friendDbStorage, eventDbStorage, filmGenresDbStorage);
         FilmService filmService = new FilmService(filmDbStorage, filmGenresDbStorage, likesDbStorage, filmDirectorsDbStorage, eventDbStorage,
                 userService, genreService, directorService);
         reviewService = new ReviewService(reviewDbStorage, eventDbStorage, filmService, userService);

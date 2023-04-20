@@ -150,45 +150,66 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public List<Film> getFilmSearch(String query, String by) {
-        String sqlQuery;
-        if (by.equals("title")) {
-            log.info("поиск по названию");
-            sqlQuery = "SELECT DISTINCT FILMS.film_id, FILMS.name, FILMS.description, FILMS.release_date, FILMS.duration, " +
-                    "FILMS.mpa_rating_id, COUNT(LIKES.user_id) FROM FILMS LEFT JOIN LIKES ON FILMS.film_id = LIKES.film_id" +
-                    "WHERE FILMS.name LIKE ('%" + query + "%') " +
-                    "GROUP BY FILMS.film_id ORDER BY COUNT(LIKES.user_id) DESC";
-        } else if (by.equals("director")) {
-            log.info("поиск по режисеру");
-            sqlQuery = "SELECT DISTINCT FILMS.film_id, FILMS.name, FILMS.description, FILMS.release_date, FILMS.duration, " +
-                    "FILMS.mpa_rating_id, COUNT(LIKES.user_id) FROM FILMS LEFT JOIN LIKES ON FILMS.film_id = LIKES.film_id" +
-                    "LEFT JOIN FILM_DIRECTORS ON FILM_DIRECTORS.film_id = FILMS.film_id " +
-                    "LEFT JOIN DIRECTORS ON DIRECTORS.director_id = FILM_DIRECTORS.director_id  " +
-                    "WHERE DIRECTORS.director_name LIKE ('%" + query + "%') " +
-                    "GROUP BY FILMS.film_id , FILM_DIRECTORS.director_id ORDER BY COUNT(LIKES.user_id) DESC";
-        } else if (by.equals("title,director") || by.equals("director,title")) {
-            log.info("поиск и то и другое");
-            sqlQuery = "SELECT DISTINCT FILMS.film_id, FILMS.name, FILMS.description, FILMS.release_date, FILMS.duration, " +
-                    "FILMS.mpa_rating_id, COUNT(LIKES.user_id) FROM FILMS LEFT JOIN LIKES ON FILMS.film_id = LIKES.film_id" +
-                    "LEFT JOIN FILM_DIRECTORS ON FILM_DIRECTORS.film_id = FILMS.film_id " +
-                    "LEFT JOIN DIRECTORS ON DIRECTORS.director_id = FILM_DIRECTORS.director_id " +
-                    "WHERE FILMS.name LIKE ('%" + query + "%') OR " +
-                    "DIRECTORS.director_name LIKE ('%" + query + "%') " +
-                    "GROUP BY FILMS.film_id, FILM_DIRECTORS.director_id ORDER BY COUNT(LIKES.user_id) DESC";
-        } else if (by.isEmpty()) {
-            sqlQuery = "SELECT DISTINCT FILMS.film_id, FILMS.name, FILMS.description, FILMS.release_date, FILMS.duration, " +
-                    "FILMS.mpa_rating_id, COUNT(LIKES.user_id) FROM FILMS LEFT JOIN LIKES ON FILMS.film_id = LIKES.film_id" +
-                    "GROUP BY FILMS.film_id ORDER BY COUNT(LIKES.user_id) DESC";
-        } else {
-            throw new FilmNotFoundException("Incorrect request parameter - " + by);
-        }
+        String queryToLowerCase = query.toLowerCase();
+        String sqlQuery = "";
         List<Film> films = new ArrayList<>();
-
         try {
-            films.addAll(jdbcTemplate.query(sqlQuery, FilmDbStorage::filmMapper, query));
-        } catch (Exception ignored) {
+            if (by.equals("title")) {
+                log.info("поиск по названию");
 
+                sqlQuery = "SELECT DISTINCT FILMS.film_id, FILMS.name, FILMS.description, FILMS.release_date, FILMS.duration, FILMS.mpa_rating_id, MR.MPA_RATING_NAME\n" +
+                        "FROM FILMS\n" +
+                        "LEFT JOIN MPA_RATING MR ON FILMS.MPA_RATING_ID = MR.MPA_RATING_ID\n" +
+                        "LEFT JOIN LIKES ON FILMS.film_id = LIKES.film_id\n" +
+                        "WHERE LOWER(FILMS.name) LIKE ('%update%')\n" +
+                        "GROUP BY FILMS.film_id";
+                films.addAll(jdbcTemplate.query(sqlQuery, FilmDbStorage::filmMapper));
+
+                log.info("title: {}", films);
+            } else if (by.equals("director")) {
+                log.info("поиск по режисеру");
+
+                sqlQuery = "SELECT DISTINCT FILMS.film_id, FILMS.name, FILMS.description, FILMS.release_date, FILMS.duration, FILMS.mpa_rating_id, MR.MPA_RATING_NAME\n" +
+                        "FROM FILMS\n" +
+                        "LEFT JOIN MPA_RATING MR ON FILMS.MPA_RATING_ID = MR.MPA_RATING_ID\n" +
+                        "LEFT JOIN LIKES ON FILMS.film_id = LIKES.film_id\n" +
+                        "LEFT JOIN FILM_DIRECTORS ON FILM_DIRECTORS.film_id = FILMS.film_id\n" +
+                        "LEFT JOIN DIRECTORS ON DIRECTORS.director_id = FILM_DIRECTORS.director_id\n" +
+                        "WHERE LOWER(DIRECTORS.director_name) LIKE ('%update%')\n" +
+                        "GROUP BY FILMS.film_id , FILM_DIRECTORS.director_id\n";
+                films.addAll(jdbcTemplate.query(sqlQuery, FilmDbStorage::filmMapper));
+
+                log.info("director: {}", films);
+            } else if (by.equals("title,director") || by.equals("director,title")) {
+                log.info("поиск и то и другое");
+
+                sqlQuery = "SELECT DISTINCT FILMS.film_id, FILMS.name, FILMS.description, FILMS.release_date, FILMS.duration, FILMS.mpa_rating_id, MR.MPA_RATING_NAME \n" +
+                        "FROM FILMS\n" +
+                        "LEFT JOIN MPA_RATING MR ON FILMS.MPA_RATING_ID = MR.MPA_RATING_ID \n" +
+                        "LEFT JOIN LIKES ON FILMS.film_id = LIKES.film_id\n" +
+                        "LEFT JOIN FILM_DIRECTORS ON FILM_DIRECTORS.film_id = FILMS.film_id\n" +
+                        "LEFT JOIN DIRECTORS ON DIRECTORS.director_id = FILM_DIRECTORS.director_id\n" +
+                        "WHERE LOWER(FILMS.name) LIKE ('%update%') --AND FILMS.DELETED = FALSE\n" +
+                        "OR LOWER(DIRECTORS.director_name) LIKE ('%update%')\n" +
+                        "GROUP BY FILMS.film_id, FILM_DIRECTORS.director_id";
+                films.addAll(jdbcTemplate.query(sqlQuery, FilmDbStorage::filmMapper));
+
+                log.info("title & director: {}", films);
+            } else if (by.isEmpty()) {
+
+                sqlQuery = "SELECT DISTINCT FILMS.film_id, FILMS.name, FILMS.description, FILMS.release_date, FILMS.duration, FILMS.mpa_rating_id, MR.MPA_RATING_NAME\n" +
+                        "FROM FILMS\n" +
+                        "LEFT JOIN MPA_RATING MR ON FILMS.MPA_RATING_ID = MR.MPA_RATING_ID\n" +
+                        "LEFT JOIN LIKES ON FILMS.film_id = LIKES.film_id\n" +
+                        "GROUP BY FILMS.film_id";
+                films.addAll(jdbcTemplate.query(sqlQuery, FilmDbStorage::filmMapper));
+            }
+
+            if (films.isEmpty()) {
+                throw new FilmNotFoundException("По данному запросу не найден ни один фильм");
+            }
+        } catch (Exception e) {
         }
-
         return films;
     }
 

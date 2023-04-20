@@ -278,8 +278,11 @@ public class FilmService {
         ResponseEntity.ok(film);
     }
 
-    public List<Film> getFilmSearch(String query, String by) {
-        return filmStorage.getFilmSearch(query, by);
+    public Collection<Film> getFilmSearch(String query, String by) {
+        List<Film> foundFilms = filmStorage.getFilmSearch(query, by);
+        List<Map<Long, Genre>> allGenres = filmGenresStorage.findAll();
+        List<Map<Long, Director>> allDirectors = filmDirectorsStorage.findAll();
+        return getFilmsWithAllFields(foundFilms, allGenres, allDirectors);
     }
 
 }
