@@ -36,7 +36,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public User findUser(long id) {
-        String sql = "SELECT * FROM USERS WHERE user_id = ?";
+        String sql = "SELECT * FROM USERS WHERE user_id = ? AND DELETED = FALSE";
         User user = jdbcTemplate.query(sql, UserDbStorage::userMapper, id).stream().findFirst().orElse(null);
         if (user == null) {
             throw new UserNotFoundException("Пользователь с ID " + id + " не найден.");
@@ -47,7 +47,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Collection<User> findAll() {
-        String sql = "SELECT * FROM USERS ";
+        String sql = "SELECT * FROM USERS WHERE DELETED = FALSE";
         return new LinkedHashSet<>(
                 jdbcTemplate.query(sql, UserDbStorage::userMapper)
         );
@@ -70,9 +70,11 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public void remove(User user) {
-        String sql = "DELETE FROM USERS WHERE user_id = ?";
-        jdbcTemplate.update(sql, user.getId());
-
+        String sqlQuery = "UPDATE USERS SET " +
+                "deleted = true " +
+                "WHERE user_id = ?";
+        jdbcTemplate.update(sqlQuery,
+                user.getId());
         log.info("Удален пользователь {}.", user);
     }
 

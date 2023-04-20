@@ -13,7 +13,7 @@ public interface FilmStorage {
 
     Film update(Film film, int ratingId);
 
-    Film remove(Film film);
+    void remove(Film film);
 
     Collection<Film> getCommonFilms(Long userId, Long friendId);
 
