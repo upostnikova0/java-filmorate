@@ -153,14 +153,14 @@ public class FilmDbStorage implements FilmStorage {
         String sqlQuery;
         if (by.equals("title")) {
             log.info("поиск по названию");
-              sqlQuery = "SELECT DISTINCT FILMS.film_id, FILMS.name, FILMS.description, FILMS.release_date, FILMS.duration, " +
+            sqlQuery = "SELECT DISTINCT FILMS.film_id, FILMS.name, FILMS.description, FILMS.release_date, FILMS.duration, " +
                     "FILMS.mpa_rating_id, COUNT(LIKES.user_id) FROM FILMS LEFT JOIN LIKES ON FILMS.film_id = LIKES.film_id" +
                     "WHERE FILMS.name LIKE ('%" + query + "%') " +
                     "GROUP BY FILMS.film_id ORDER BY COUNT(LIKES.user_id) DESC";
         } else if (by.equals("director")) {
             log.info("поиск по режисеру");
-                sqlQuery = "SELECT DISTINCT FILMS.film_id, FILMS.name, FILMS.description, FILMS.release_date, FILMS.duration, " +
-                        "FILMS.mpa_rating_id, COUNT(LIKES.user_id) FROM FILMS LEFT JOIN LIKES ON FILMS.film_id = LIKES.film_id" +
+            sqlQuery = "SELECT DISTINCT FILMS.film_id, FILMS.name, FILMS.description, FILMS.release_date, FILMS.duration, " +
+                    "FILMS.mpa_rating_id, COUNT(LIKES.user_id) FROM FILMS LEFT JOIN LIKES ON FILMS.film_id = LIKES.film_id" +
                     "LEFT JOIN FILM_DIRECTORS ON FILM_DIRECTORS.film_id = FILMS.film_id " +
                     "LEFT JOIN DIRECTORS ON DIRECTORS.director_id = FILM_DIRECTORS.director_id  " +
                     "WHERE DIRECTORS.director_name LIKE ('%" + query + "%') " +

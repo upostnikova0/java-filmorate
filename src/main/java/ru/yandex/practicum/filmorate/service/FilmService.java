@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Event;
@@ -280,7 +279,7 @@ public class FilmService {
     }
 
     public List<Film> getFilmSearch(String query, String by) {
-              return filmStorage.getFilmSearch(query, by);
+        return filmStorage.getFilmSearch(query, by);
     }
 
 }

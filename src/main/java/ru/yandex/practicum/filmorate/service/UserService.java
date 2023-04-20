@@ -15,7 +15,6 @@ import ru.yandex.practicum.filmorate.model.enums.OperationType;
 import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.filmgenres.FilmGenresStorage;
 import ru.yandex.practicum.filmorate.storage.friends.FriendStorage;
-import ru.yandex.practicum.filmorate.storage.likes.LikesStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
