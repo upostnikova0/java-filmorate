@@ -14,7 +14,6 @@ import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
 
 import java.util.List;
 
-
 @Slf4j
 @Service
 public class ReviewService {
@@ -38,8 +37,6 @@ public class ReviewService {
         checkUserAndFilmIsExists(review);
         review.setUseful(0);
         reviewStorage.create(review);
-        // review.setLikes(new TreeSet<>());
-        // review.setDislikes(new TreeSet<>());
 
         eventStorage.add(Event.builder()
                 .timestamp(System.currentTimeMillis())
@@ -85,11 +82,6 @@ public class ReviewService {
 
             reviewStorage.delete(reviewId);
         }
-    }
-
-    public void addOrDeleteLikeOrDislike(long reviewId, long userId, String likeOrDislike, String requestMethod) {
-        findById(reviewId);
-        reviewStorage.addOrDeleteLikeOrDislike(reviewId, userId, likeOrDislike, requestMethod);
     }
 
     public List<Review> findByFilmIdOrAll(long filmId, int count) {
