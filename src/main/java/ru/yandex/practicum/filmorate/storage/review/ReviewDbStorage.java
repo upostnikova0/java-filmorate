@@ -69,6 +69,8 @@ public class ReviewDbStorage implements ReviewStorage {
 ////            review.setDislikes(getReviewDislikes(review.getReviewId()));
         //review.setUseful();
 //        }
+
+        /////wdfsfsfsfsfsfsrfs
         jdbcTemplate.update(sqlQuery, review.getContent(), review.getIsPositive(), review.getReviewId());
         return review;
     }
