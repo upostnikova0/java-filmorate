@@ -27,8 +27,8 @@ public class Review {
     private Long filmId;
     private Integer useful;
     private boolean deleted;
-    private Set<Long> likes;
-    private Set<Long> dislikes;
+//    private Set<Long> likes;
+//    private Set<Long> dislikes;
 
     public Map<String, Object> toMap() {
         Map<String, Object> values = new HashMap<>();
