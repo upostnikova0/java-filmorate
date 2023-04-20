@@ -20,6 +20,7 @@ public class User {
     @NotBlank
     private String login;
     private String name;
+    private boolean deleted;
     @Past
     private LocalDate birthday;
 
@@ -31,6 +32,7 @@ public class User {
         values.put("login", login);
         values.put("name", name);
         values.put("birthday", birthday);
+        values.put("deleted", deleted);
         return values;
     }
 }

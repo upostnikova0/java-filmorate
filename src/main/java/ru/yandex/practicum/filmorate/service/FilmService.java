@@ -204,17 +204,18 @@ public class FilmService {
         findFilm(filmId);
         userService.findUser(userId);
 
-        if (!likesStorage.isLikeExist(filmId, userId)) {
-            likesStorage.add(filmId, userId);
-
-            eventStorage.add(Event.builder()
-                    .timestamp(System.currentTimeMillis())
-                    .userId(userId)
-                    .eventType(EventType.LIKE)
-                    .operation(OperationType.ADD)
-                    .entityId(filmId)
-                    .build());
+        if (likesStorage.isLikeExist(filmId, userId)) {
+            likesStorage.remove(filmId, userId);
         }
+        likesStorage.add(filmId, userId);
+
+        eventStorage.add(Event.builder()
+                .timestamp(System.currentTimeMillis())
+                .userId(userId)
+                .eventType(EventType.LIKE)
+                .operation(OperationType.ADD)
+                .entityId(filmId)
+                .build());
     }
 
     public void deleteLike(long filmId, long userId) {

@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS USERS (
     login VARCHAR(100) NOT NULL,
     name VARCHAR(100) NOT NULL,
     birthday DATE,
+    deleted BOOL DEFAULT FALSE,
     CONSTRAINT users_pk PRIMARY KEY (user_id),
     CONSTRAINT user_email UNIQUE (email),
     CONSTRAINT user_login UNIQUE (login)
