@@ -71,6 +71,7 @@ public class ReviewDbStorage implements ReviewStorage {
 //        }
 
         /////wdfsfsfsfsfsfsrfs
+        //// удалить то что сверху
         jdbcTemplate.update(sqlQuery, review.getContent(), review.getIsPositive(), review.getReviewId());
         return review;
     }
