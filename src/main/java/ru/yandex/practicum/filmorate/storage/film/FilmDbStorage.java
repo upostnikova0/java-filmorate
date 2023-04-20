@@ -150,6 +150,11 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public List<Film> getFilmSearch(String query, String by) {
+        /**
+         * 1. вернуть фильмы по кол-ву лайков
+         * 2. разобраться как поисковую подстроку из запроса засунуть в %%
+         * 3. вернуть нормально список популярных фильмов или что там надо вернуть, если
+         * by.isEmpty()*/
         String queryToLowerCase = query.toLowerCase();
         String sqlQuery = "";
         List<Film> films = new ArrayList<>();
