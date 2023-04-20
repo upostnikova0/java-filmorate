@@ -20,9 +20,9 @@ public class User {
     @NotBlank
     private String login;
     private String name;
-    private boolean deleted;
     @Past
     private LocalDate birthday;
+    private boolean deleted;
 
     private Set<Long> friends;
 

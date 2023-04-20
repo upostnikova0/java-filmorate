@@ -46,7 +46,7 @@ public class ReviewDbStorage implements ReviewStorage {
 
     @Override
     public Optional<Review> findById(long reviewId) {
-        String sqlQuery = "SELECT * FROM reviews WHERE review_id = ?";
+        String sqlQuery = "SELECT * FROM reviews WHERE review_id = ? AND deleted = false";
         try {
             Review review = jdbcTemplate.queryForObject(sqlQuery, rowMapper, reviewId);
             review.setLikes(getReviewLikes(reviewId));
@@ -75,7 +75,8 @@ public class ReviewDbStorage implements ReviewStorage {
 
     @Override
     public void delete(long reviewId) {
-        String sqlQuery = "DELETE FROM reviews WHERE review_id = ?";
+        String sqlQuery = "UPDATE reviews SET deleted = true " +
+                "WHERE review_id = ?";
         jdbcTemplate.update(sqlQuery, reviewId);
     }
 
@@ -108,10 +109,16 @@ public class ReviewDbStorage implements ReviewStorage {
         String sqlQuery;
         List<Review> reviews;
         if (filmId > 0) {
-            sqlQuery = "SELECT * FROM reviews WHERE film_id = ? ORDER BY useful DESC, review_id LIMIT ?";
+            sqlQuery = "SELECT * FROM reviews " +
+                    "JOIN FILMS AS f ON reviews.film_id = f.film_id " +
+                    "WHERE reviews.film_id = ? AND f.deleted = false AND reviews.deleted = false " +
+                    "ORDER BY reviews.useful DESC, reviews.review_id LIMIT ?";
             reviews = jdbcTemplate.query(sqlQuery, rowMapper, filmId, count);
         } else {
-            sqlQuery = "SELECT * FROM reviews ORDER BY useful DESC, review_id LIMIT ?";
+            sqlQuery = "SELECT * FROM reviews " +
+                    "JOIN FILMS AS f ON reviews.film_id = f.film_id " +
+                    "WHERE f.deleted = false AND reviews.deleted = false " +
+                    "ORDER BY reviews.useful DESC, reviews.review_id LIMIT ?";
             reviews = jdbcTemplate.query(sqlQuery, rowMapper, count);
         }
 

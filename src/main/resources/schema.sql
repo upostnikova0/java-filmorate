@@ -95,6 +95,7 @@ CREATE TABLE IF NOT EXISTS reviews (
 	user_id BIGINT NOT NULL,
 	film_id BIGINT NOT NULL,
 	useful BIGINT DEFAULT 0,
+    deleted BOOL DEFAULT FALSE,
 	CONSTRAINT reviews_pk PRIMARY KEY (review_id),
     FOREIGN KEY (user_id) REFERENCES users (user_id),
 	FOREIGN KEY (film_id) REFERENCES films (film_id)
