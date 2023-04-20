@@ -214,6 +214,7 @@ public class FilmDbStorage implements FilmStorage {
                 throw new FilmNotFoundException("По данному запросу не найден ни один фильм");
             }
         } catch (Exception e) {
+            e.getMessage();
         }
         return films;
     }
