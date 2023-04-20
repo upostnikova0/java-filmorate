@@ -24,6 +24,7 @@ public class Film {
     @Positive
     private Long duration;
     private Mpa mpa;
+    private boolean deleted;
     private List<Genre> genres;
     private Set<Long> likes;
     private List<Director> directors;
@@ -35,6 +36,7 @@ public class Film {
         values.put("release_date", releaseDate);
         values.put("duration", duration);
         values.put("mpa_rating_id", mpa.getId());
+        values.put("deleted", deleted);
         return values;
     }
 }

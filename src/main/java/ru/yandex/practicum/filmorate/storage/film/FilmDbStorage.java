@@ -36,7 +36,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Film findFilm(long filmId) {
         String sql = "SELECT * FROM FILMS " +
-                "JOIN MPA_RATING M ON M.MPA_RATING_ID = FILMS.MPA_RATING_ID WHERE film_id = ?";
+                "JOIN MPA_RATING M ON M.MPA_RATING_ID = FILMS.MPA_RATING_ID WHERE film_id = ? AND films.deleted = false";
 
         Film film = jdbcTemplate.query(sql, FilmDbStorage::filmMapper, filmId).stream().findFirst().orElse(null);
         if (film == null) {
@@ -49,7 +49,7 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public Collection<Film> findAll() {
         String sql = "SELECT * FROM FILMS " +
-                "JOIN MPA_RATING M ON M.MPA_RATING_ID = FILMS.MPA_RATING_ID";
+                "JOIN MPA_RATING M ON M.MPA_RATING_ID = FILMS.MPA_RATING_ID AND films.deleted = false";
         return jdbcTemplate.query(sql, FilmDbStorage::filmMapper);
     }
 
@@ -72,12 +72,14 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Film remove(Film film) {
-        String sql = "DELETE FROM FILMS WHERE film_id = ?";
-        jdbcTemplate.update(sql, film.getId());
+    public void remove(Film film) {
+        String sqlQuery = "UPDATE FILMS SET " +
+                "deleted = true WHERE film_id = ?";
+        jdbcTemplate.update(sqlQuery,
+                film.getId()
+        );
 
         log.info(String.format("Фильм с ID %d успешно удален.", film.getId()));
-        return film;
     }
 
     @Override
@@ -94,6 +96,7 @@ public class FilmDbStorage implements FilmStorage {
                 "m.mpa_rating_name FROM films as f " +
                 "LEFT JOIN likes as l ON f.film_id = l.film_id " +
                 "LEFT JOIN MPA_RATING as M ON M.MPA_RATING_ID = f.MPA_RATING_ID " +
+                "WHERE f.deleted = false " +
                 "GROUP BY l.film_id, f.film_id " +
                 "ORDER BY COUNT(l.user_id) DESC " +
                 "LIMIT ?";

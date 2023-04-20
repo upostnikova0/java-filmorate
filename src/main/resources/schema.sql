@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS FILMS (
     release_date DATE,
     duration BIGINT,
     mpa_rating_id INTEGER,
+    deleted BOOL DEFAULT FALSE,
     CONSTRAINT films_pk PRIMARY KEY (film_id),
     FOREIGN KEY (mpa_rating_id) REFERENCES MPA_RATING (mpa_rating_id)
 );
