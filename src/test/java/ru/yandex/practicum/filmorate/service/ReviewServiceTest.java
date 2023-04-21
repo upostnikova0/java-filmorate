@@ -1,12 +1,12 @@
-package ru.yandex.practicum.filmorate.service;
-
-import lombok.RequiredArgsConstructor;
+//package ru.yandex.practicum.filmorate.service;
+//
+//import lombok.RequiredArgsConstructor;
 //import org.junit.jupiter.api.AfterEach;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
+//import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+//import org.springframework.boot.test.context.SpringBootTest;
 //import org.springframework.dao.DuplicateKeyException;
 //import org.springframework.jdbc.core.JdbcTemplate;
 //import org.springframework.jdbc.datasource.embedded.EmbeddedDatabase;
@@ -22,7 +22,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 //import ru.yandex.practicum.filmorate.storage.friends.FriendDbStorage;
 //import ru.yandex.practicum.filmorate.storage.genre.GenreDbStorage;
 //import ru.yandex.practicum.filmorate.storage.likes.LikesDbStorage;
-//import ru.yandex.practicum.filmorate.storage.mpa.MpaDbStorage;
 //import ru.yandex.practicum.filmorate.storage.review.ReviewDbStorage;
 //import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
 //import ru.yandex.practicum.filmorate.storage.user.UserDbStorage;
@@ -30,14 +29,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 //import java.util.ArrayList;
 //import java.util.List;
 //
-//
 //import static org.junit.jupiter.api.Assertions.assertEquals;
 //import static org.junit.jupiter.api.Assertions.assertThrows;
-
-@SpringBootTest
-@AutoConfigureTestDatabase
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
-public class ReviewServiceTest {
+//
+//@SpringBootTest
+//@AutoConfigureTestDatabase
+//@RequiredArgsConstructor(onConstructor_ = @Autowired)
+//public class ReviewServiceTest {
 //    private EmbeddedDatabase embeddedDatabase;
 //    private ReviewService reviewService;
 //    Review review1;
@@ -61,14 +59,12 @@ public class ReviewServiceTest {
 //        GenreDbStorage genreDbStorage = new GenreDbStorage(jdbcTemplate);
 //        FilmGenresDbStorage filmGenresDbStorage = new FilmGenresDbStorage(jdbcTemplate);
 //        LikesDbStorage likesDbStorage = new LikesDbStorage(jdbcTemplate);
-//        MpaDbStorage mpaDbStorage = new MpaDbStorage(jdbcTemplate);
 //        FilmDirectorsDbStorage filmDirectorsDbStorage = new FilmDirectorsDbStorage(jdbcTemplate);
 //        DirectorDbStorage directorDbStorage = new DirectorDbStorage(jdbcTemplate);
 //        EventDbStorage eventDbStorage = new EventDbStorage(jdbcTemplate);
 //
 //        GenreService genreService = new GenreService(genreDbStorage);
 //        DirectorService directorService = new DirectorService(directorDbStorage);
-//        MpaService mpaService = new MpaService(mpaDbStorage);
 //        UserService userService = new UserService(userDbStorage, friendDbStorage, eventDbStorage, filmGenresDbStorage);
 //        FilmService filmService = new FilmService(filmDbStorage, filmGenresDbStorage, likesDbStorage, filmDirectorsDbStorage, eventDbStorage,
 //                userService, genreService, directorService);
@@ -118,8 +114,6 @@ public class ReviewServiceTest {
 //        assertEquals(3L, createdReview.getFilmId(), "Incorrect FilmId written");
 //        assertEquals(1L, createdReview.getUserId(), "Incorrect UserId written");
 //        assertEquals(0, createdReview.getUseful(), "Incorrect Useful assigned");
-//       // assertEquals(0, createdReview.getLikes().size(), "Incorrect Likes assigned");
-//      //  assertEquals(0, createdReview.getDislikes().size(), "Incorrect Dislikes assigned");
 //    }
 //
 //    @Test
@@ -136,19 +130,11 @@ public class ReviewServiceTest {
 //        assertEquals(3L, foundReview.getFilmId(), "Incorrect FilmId written");
 //        assertEquals(1L, foundReview.getUserId(), "Incorrect UserId written");
 //        assertEquals(0, foundReview.getUseful(), "Incorrect Useful assigned");
-//       // assertEquals(0, foundReview.getLikes().size(), "Incorrect Likes assigned");
-//       // assertEquals(0, foundReview.getDislikes().size(), "Incorrect Dislikes assigned");
 //    }
 //
 //    @Test
 //    void update() {
 //        reviewService.create(review1);
-//
-//       // Set<Long> likes = new TreeSet<>();
-//      //  likes.add(600L);
-//       // Set<Long> disLikes = new TreeSet<>();
-//       // disLikes.add(770L);
-//       // disLikes.add(9970L);
 //        Review forUpdate = Review.builder()
 //                .reviewId(1L)
 //                .content("UPDATED KLIM SSANICH")
@@ -156,8 +142,6 @@ public class ReviewServiceTest {
 //                .userId(2L)
 //                .filmId(2L)
 //                .useful(8841)
-//               // .dislikes(disLikes)
-//              //  .likes(likes)
 //                .build();
 //
 //        Review updatedReview = reviewService.update(forUpdate);
@@ -168,8 +152,6 @@ public class ReviewServiceTest {
 //        assertEquals(3L, updatedReview.getFilmId(), "This field shouldn't be updated!");
 //        assertEquals(1L, updatedReview.getUserId(), "This field shouldn't be updated!");
 //        assertEquals(0, updatedReview.getUseful(), "This field shouldn't be updated!");
-//       //assertEquals(0, updatedReview.getLikes().size(), "This field shouldn't be updated!");
-//       // assertEquals(0, updatedReview.getDislikes().size(), "This field shouldn't be updated!");
 //    }
 //
 //    @Test
@@ -186,8 +168,6 @@ public class ReviewServiceTest {
 //        reviewService.addOrDeleteLikeOrDislike(1L, 2L, "like", "put");
 //        Review foundReview = reviewService.findById(1L);
 //
-//       //assertEquals(1, foundReview.getLikes().size(), "Incorrect Likes updated");
-//       // assertEquals(0, foundReview.getDislikes().size(), "Incorrect Dislikes updated");
 //        assertEquals(1, foundReview.getUseful(), "Incorrect Useful updated");
 //
 //        assertThrows(DuplicateKeyException.class,
@@ -201,8 +181,6 @@ public class ReviewServiceTest {
 //        reviewService.addOrDeleteLikeOrDislike(1L, 2L, "dislike", "put");
 //        Review foundReview = reviewService.findById(1L);
 //
-//       // assertEquals(0, foundReview.getLikes().size(), "Incorrect Likes updated");
-//       // assertEquals(1, foundReview.getDislikes().size(), "Incorrect Dislikes updated");
 //        assertEquals(-1, foundReview.getUseful(), "Incorrect Useful updated");
 //
 //        assertThrows(DuplicateKeyException.class,
@@ -216,22 +194,16 @@ public class ReviewServiceTest {
 //        reviewService.addOrDeleteLikeOrDislike(1L, 2L, "like", "delete");
 //        Review foundReview = reviewService.findById(1L);
 //
-//       // assertEquals(0, foundReview.getLikes().size(), "Incorrect Likes updated");
-//      // assertEquals(0, foundReview.getDislikes().size(), "Incorrect Dislikes updated");
 //        assertEquals(0, foundReview.getUseful(), "Incorrect Useful updated");
 //
 //        reviewService.addOrDeleteLikeOrDislike(1L, 2L, "like", "put");
 //        foundReview = reviewService.findById(1L);
 //
-//       // assertEquals(1, foundReview.getLikes().size(), "Incorrect Likes updated");
-//       // assertEquals(0, foundReview.getDislikes().size(), "Incorrect Dislikes updated");
 //        assertEquals(1, foundReview.getUseful(), "Incorrect Useful updated");
 //
 //        reviewService.addOrDeleteLikeOrDislike(1L, 2L, "like", "delete");
 //        foundReview = reviewService.findById(1L);
 //
-//       // assertEquals(0, foundReview.getLikes().size(), "Incorrect Likes updated");
-//       // assertEquals(0, foundReview.getDislikes().size(), "Incorrect Dislikes updated");
 //        assertEquals(0, foundReview.getUseful(), "Incorrect Useful updated");
 //    }
 //
@@ -242,22 +214,16 @@ public class ReviewServiceTest {
 //        reviewService.addOrDeleteLikeOrDislike(1L, 2L, "dislike", "delete");
 //        Review foundReview = reviewService.findById(1L);
 //
-//       // assertEquals(0, foundReview.getLikes().size(), "Incorrect Likes updated");
-//       // assertEquals(0, foundReview.getDislikes().size(), "Incorrect Dislikes updated");
 //        assertEquals(0, foundReview.getUseful(), "Incorrect Useful updated");
 //
 //        reviewService.addOrDeleteLikeOrDislike(1L, 2L, "dislike", "put");
 //        foundReview = reviewService.findById(1L);
 //
-//       // assertEquals(0, foundReview.getLikes().size(), "Incorrect Likes updated");
-//      //  assertEquals(1, foundReview.getDislikes().size(), "Incorrect Dislikes updated");
 //        assertEquals(-1, foundReview.getUseful(), "Incorrect Useful updated");
 //
 //        reviewService.addOrDeleteLikeOrDislike(1L, 2L, "dislike", "delete");
 //        foundReview = reviewService.findById(1L);
 //
-//        //assertEquals(0, foundReview.getLikes().size(), "Incorrect Likes updated");
-//       // assertEquals(0, foundReview.getDislikes().size(), "Incorrect Dislikes updated");
 //        assertEquals(0, foundReview.getUseful(), "Incorrect Useful updated");
 //    }
 //
@@ -293,4 +259,4 @@ public class ReviewServiceTest {
 //        expected.add(reviewService.findById(3L));
 //        assertEquals(expected, reviewService.findByFilmIdOrAll(0, 10));
 //    }
-}
+//}

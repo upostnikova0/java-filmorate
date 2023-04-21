@@ -38,8 +38,8 @@ public class ReviewService {
         checkUserAndFilmIsExists(review);
         review.setUseful(0);
         reviewStorage.create(review);
-       // review.setLikes(new TreeSet<>());
-       // review.setDislikes(new TreeSet<>());
+        // review.setLikes(new TreeSet<>());
+        // review.setDislikes(new TreeSet<>());
 
         eventStorage.add(Event.builder()
                 .timestamp(System.currentTimeMillis())

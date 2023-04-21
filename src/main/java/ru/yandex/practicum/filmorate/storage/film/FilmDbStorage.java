@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @Slf4j
 @Component("filmDbStorage")
@@ -102,7 +103,7 @@ public class FilmDbStorage implements FilmStorage {
                 "LIMIT ?";
 
         if (genreId != 0 && year != 0) {
-            sqlQuery = "SELECT f.film_id, f.name, f.description, f.duration, f.release_date, f.mpa_rating_id, " +
+            sqlQuery = "SELECT f.film_id, f.name, f.description, f.release_date, f.duration, f.mpa_rating_id, " +
                     "m.mpa_rating_name FROM films as f " +
                     "LEFT JOIN likes as l ON f.film_id = l.film_id " +
                     "LEFT JOIN MPA_RATING AS M ON M.MPA_RATING_ID = f.MPA_RATING_ID " +
@@ -116,7 +117,7 @@ public class FilmDbStorage implements FilmStorage {
         }
 
         if (genreId != 0 || year != 0) {
-            sqlQuery = "SELECT f.film_id, f.name, f.description, f.duration, f.release_date, f.mpa_rating_id, " +
+            sqlQuery = "SELECT f.film_id, f.name, f.description, f.release_date, f.duration, f.mpa_rating_id, " +
                     "m.mpa_rating_name FROM films as f " +
                     "LEFT JOIN likes as l ON f.film_id = l.film_id " +
                     "LEFT JOIN MPA_RATING M ON M.MPA_RATING_ID = f.MPA_RATING_ID " +
@@ -147,4 +148,66 @@ public class FilmDbStorage implements FilmStorage {
                 .directors(new ArrayList<>())
                 .build();
     }
+
+    public List<Film> getFilmSearch(String query, String by) {
+        /**
+         * 1. вернуть отсортированные фильмы по кол-ву лайков
+         * */
+        query = query.toLowerCase();
+        log.warn(query);
+        String sqlQuery = "";
+        List<Film> films = new ArrayList<>();
+        if (by.equals("title")) {
+            sqlQuery = "SELECT DISTINCT FILMS.film_id, FILMS.name, FILMS.description, FILMS.release_date, FILMS.duration, COUNT(LIKES.user_id) AS rating, FILMS.mpa_rating_id, MR.MPA_RATING_NAME\n" +
+                    "FROM FILMS\n" +
+                    "LEFT JOIN MPA_RATING MR ON FILMS.MPA_RATING_ID = MR.MPA_RATING_ID\n" +
+                    "LEFT JOIN LIKES ON FILMS.film_id = LIKES.film_id\n" +
+                    "WHERE LOWER(FILMS.name) LIKE '%" + query + "%'\n" +
+                    "GROUP BY FILMS.film_id\n" +
+                    "ORDER BY rating DESC ";
+            films.addAll(jdbcTemplate.query(sqlQuery, FilmDbStorage::filmMapper));
+
+            log.info("title: {}", films);
+        } else if (by.equals("director")) {
+            sqlQuery = "SELECT DISTINCT FILMS.film_id, FILMS.name, FILMS.description, FILMS.release_date, FILMS.duration, COUNT(LIKES.user_id) AS rating, FILMS.mpa_rating_id, MR.MPA_RATING_NAME\n" +
+                    "FROM FILMS\n" +
+                    "LEFT JOIN MPA_RATING MR ON FILMS.MPA_RATING_ID = MR.MPA_RATING_ID\n" +
+                    "LEFT JOIN LIKES ON FILMS.film_id = LIKES.film_id\n" +
+                    "LEFT JOIN FILM_DIRECTORS ON FILM_DIRECTORS.film_id = FILMS.film_id\n" +
+                    "LEFT JOIN DIRECTORS ON DIRECTORS.director_id = FILM_DIRECTORS.director_id\n" +
+                    "WHERE LOWER(DIRECTORS.director_name) LIKE '%" + query + "%'\n" +
+                    "GROUP BY FILMS.film_id , FILM_DIRECTORS.director_id\n" +
+                    "ORDER BY rating DESC";
+            films.addAll(jdbcTemplate.query(sqlQuery, FilmDbStorage::filmMapper));
+
+            log.info("director: {}", films);
+        } else if (by.equals("title,director") || by.equals("director,title")) {
+            sqlQuery = "SELECT DISTINCT FILMS.film_id, FILMS.name, FILMS.description, FILMS.release_date, FILMS.duration, COUNT(LIKES.user_id) AS rating, FILMS.mpa_rating_id, MR.MPA_RATING_NAME \n" +
+                    "FROM FILMS\n" +
+                    "LEFT JOIN MPA_RATING MR ON FILMS.MPA_RATING_ID = MR.MPA_RATING_ID \n" +
+                    "LEFT JOIN LIKES ON FILMS.film_id = LIKES.film_id\n" +
+                    "LEFT JOIN FILM_DIRECTORS ON FILM_DIRECTORS.film_id = FILMS.film_id\n" +
+                    "LEFT JOIN DIRECTORS ON DIRECTORS.director_id = FILM_DIRECTORS.director_id\n" +
+                    "WHERE LOWER(FILMS.name) LIKE '%" + query + "%' --AND FILMS.DELETED = FALSE\n" +
+                    "OR LOWER(DIRECTORS.director_name) LIKE '%" + query + "%'\n" +
+                    "GROUP BY FILMS.film_id, FILM_DIRECTORS.director_id\n" +
+                    "ORDER BY rating DESC";
+            films.addAll(jdbcTemplate.query(sqlQuery, FilmDbStorage::filmMapper));
+
+            log.info("title & director: {}", films);
+        } else if (by.isEmpty()) {
+
+            sqlQuery = "SELECT f.film_id, f.name, f.description, f.release_date, f.duration, COUNT(l.user_id) AS rating, f.mpa_rating_id, m.mpa_rating_name \n" +
+                    "FROM films as f\n" +
+                    "LEFT JOIN likes as l ON f.film_id = l.film_id\n" +
+                    "LEFT JOIN MPA_RATING as M ON M.MPA_RATING_ID = f.MPA_RATING_ID\n" +
+                    "WHERE f.deleted = FALSE\n" +
+                    "GROUP BY l.film_id, f.film_id\n" +
+                    "ORDER BY rating DESC";
+            films.addAll(jdbcTemplate.query(sqlQuery, FilmDbStorage::filmMapper));
+            log.info("popular: {}", films);
+        }
+        return films;
+    }
+
 }
