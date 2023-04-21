@@ -13,7 +13,7 @@ import ru.yandex.practicum.filmorate.storage.event.EventStorage;
 import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
 
 import java.util.List;
-import java.util.TreeSet;
+
 
 @Slf4j
 @Service
@@ -38,8 +38,8 @@ public class ReviewService {
         checkUserAndFilmIsExists(review);
         review.setUseful(0);
         reviewStorage.create(review);
-        review.setLikes(new TreeSet<>());
-        review.setDislikes(new TreeSet<>());
+       // review.setLikes(new TreeSet<>());
+       // review.setDislikes(new TreeSet<>());
 
         eventStorage.add(Event.builder()
                 .timestamp(System.currentTimeMillis())
