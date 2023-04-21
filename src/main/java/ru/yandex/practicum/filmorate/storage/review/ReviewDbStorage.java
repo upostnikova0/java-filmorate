@@ -63,8 +63,8 @@ public class ReviewDbStorage implements ReviewStorage {
 //        boolean isUpdated = jdbcTemplate.update(sqlQuery, review.getContent(), review.getIsPositive(),
 //                review.getReviewId()) > 0;
 //        if (isUpdated) {
-            review.setUserId(getReviewUserId(review.getReviewId()));
-            review.setFilmId(getReviewFilmId(review.getReviewId()));
+        review.setUserId(getReviewUserId(review.getReviewId()));
+        review.setFilmId(getReviewFilmId(review.getReviewId()));
 ////            review.setLikes(getReviewLikes(review.getReviewId()));
 ////            review.setDislikes(getReviewDislikes(review.getReviewId()));
         //review.setUseful();
