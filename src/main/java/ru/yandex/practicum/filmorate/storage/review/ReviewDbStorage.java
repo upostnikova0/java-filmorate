@@ -48,10 +48,9 @@ public class ReviewDbStorage implements ReviewStorage {
     public Optional<Review> findById(long reviewId) {
         String sqlQuery = "SELECT * FROM reviews WHERE review_id = ? AND deleted = false";
         try {
-            Review review = jdbcTemplate.queryForObject(sqlQuery, rowMapper, reviewId);
-            review.setLikes(getReviewLikes(reviewId));
-            review.setDislikes(getReviewDislikes(reviewId));
-            return Optional.of(review);
+            return Optional.ofNullable(jdbcTemplate.queryForObject(sqlQuery, rowMapper, reviewId));
+//            review.setLikes(getReviewLikes(reviewId));
+//            review.setDislikes(getReviewDislikes(reviewId));
         } catch (EmptyResultDataAccessException exception) {
             return Optional.empty();
         }
@@ -61,15 +60,19 @@ public class ReviewDbStorage implements ReviewStorage {
     public Review update(Review review) {
         String sqlQuery = "UPDATE reviews SET contents = ?, is_positive = ?" +
                 "WHERE review_id = ?";
-        boolean isUpdated = jdbcTemplate.update(sqlQuery, review.getContent(), review.getIsPositive(),
-                review.getReviewId()) > 0;
-        if (isUpdated) {
+//        boolean isUpdated = jdbcTemplate.update(sqlQuery, review.getContent(), review.getIsPositive(),
+//                review.getReviewId()) > 0;
+//        if (isUpdated) {
             review.setUserId(getReviewUserId(review.getReviewId()));
             review.setFilmId(getReviewFilmId(review.getReviewId()));
-            review.setLikes(getReviewLikes(review.getReviewId()));
-            review.setDislikes(getReviewDislikes(review.getReviewId()));
-            review.setUseful(review.getLikes().size() - review.getDislikes().size());
-        }
+////            review.setLikes(getReviewLikes(review.getReviewId()));
+////            review.setDislikes(getReviewDislikes(review.getReviewId()));
+        //review.setUseful();
+//        }
+
+        /////wdfsfsfsfsfsfsrfs
+        //// удалить то что сверху
+        jdbcTemplate.update(sqlQuery, review.getContent(), review.getIsPositive(), review.getReviewId());
         return review;
     }
 
@@ -122,30 +125,30 @@ public class ReviewDbStorage implements ReviewStorage {
             reviews = jdbcTemplate.query(sqlQuery, rowMapper, count);
         }
 
-        sqlQuery = "SELECT * FROM reviews_likes";
-        Map<Long, Set<Long>> likes = jdbcTemplate.query(sqlQuery, likesDislikesExtractor);
+//        sqlQuery = "SELECT * FROM reviews_likes";
+//        Map<Long, Set<Long>> likes = jdbcTemplate.query(sqlQuery, likesDislikesExtractor);
+//
+//        sqlQuery = "SELECT * FROM reviews_dislikes";
+//        Map<Long, Set<Long>> dislikes = jdbcTemplate.query(sqlQuery, likesDislikesExtractor);
 
-        sqlQuery = "SELECT * FROM reviews_dislikes";
-        Map<Long, Set<Long>> dislikes = jdbcTemplate.query(sqlQuery, likesDislikesExtractor);
-
-        reviews.forEach(review -> {
-            Set<Long> reviewLikes = Optional.ofNullable(likes.get(review.getReviewId())).orElseGet(TreeSet::new);
-            Set<Long> reviewDislikes = Optional.ofNullable(dislikes.get(review.getReviewId())).orElseGet(TreeSet::new);
-            review.setLikes(reviewLikes);
-            review.setDislikes(reviewDislikes);
-        });
+//        reviews.forEach(review -> {
+//            Set<Long> reviewLikes = Optional.ofNullable(likes.get(review.getReviewId())).orElseGet(TreeSet::new);
+//            Set<Long> reviewDislikes = Optional.ofNullable(dislikes.get(review.getReviewId())).orElseGet(TreeSet::new);
+//            //review.setLikes(reviewLikes);
+//            //review.setDislikes(reviewDislikes);
+//        });
         return reviews;
     }
 
-    private Set<Long> getReviewLikes(long reviewId) {
-        String sqlQuery = "SELECT user_id FROM reviews_likes WHERE review_id = ?";
-        return new TreeSet<>(jdbcTemplate.queryForList(sqlQuery, Long.class, reviewId));
-    }
-
-    private Set<Long> getReviewDislikes(long reviewId) {
-        String sqlQuery = "SELECT user_id FROM reviews_dislikes WHERE review_id = ?";
-        return new TreeSet<>(jdbcTemplate.queryForList(sqlQuery, Long.class, reviewId));
-    }
+//    private Set<Long> getReviewLikes(long reviewId) {
+//        String sqlQuery = "SELECT user_id FROM reviews_likes WHERE review_id = ?";
+//        return new TreeSet<>(jdbcTemplate.queryForList(sqlQuery, Long.class, reviewId));
+//    }
+//
+//    private Set<Long> getReviewDislikes(long reviewId) {
+//        String sqlQuery = "SELECT user_id FROM reviews_dislikes WHERE review_id = ?";
+//        return new TreeSet<>(jdbcTemplate.queryForList(sqlQuery, Long.class, reviewId));
+//    }
 
     private Long getReviewUserId(long reviewId) {
         String sqlQuery = "SELECT user_id FROM reviews WHERE review_id = ?";
