@@ -16,7 +16,7 @@ public interface FilmDirectorsStorage {
 
     Collection<Director> findAll(long filmId);
 
-    List<Map<Long, Director>> findAll();
+    Map<Long, List<Director>> findAll();
 
     void update(Film film);
 

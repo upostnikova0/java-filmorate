@@ -56,8 +56,8 @@ public class FilmService {
 
     public Collection<Film> getSortedFilmsByDirectorId(long directorId, String filter) {
         directorService.getDirector(directorId);
-        List<Map<Long, Genre>> allGenres = filmGenresStorage.findAll();
-        List<Map<Long, Director>> allDirectors = filmDirectorsStorage.findAll();
+        Map<Long, List<Genre>> allGenres = filmGenresStorage.findAll();
+        Map<Long, List<Director>> allDirectors = filmDirectorsStorage.findAll();
 
         if (filter != null) {
             if (filter.equals("year")) {
@@ -96,32 +96,22 @@ public class FilmService {
 
     public Collection<Film> findAll() {
         List<Film> allFilms = new ArrayList<>(filmStorage.findAll());
-        List<Map<Long, Genre>> allGenres = filmGenresStorage.findAll();
-        List<Map<Long, Director>> allDirectors = filmDirectorsStorage.findAll();
+        Map<Long, List<Genre>> allGenres = filmGenresStorage.findAll();
+        Map<Long, List<Director>> allDirectors = filmDirectorsStorage.findAll();
         return getFilmsWithAllFields(allFilms, allGenres, allDirectors);
     }
 
-    private Collection<Film> getFilmsWithAllFields(List<Film> allFilms, List<Map<Long, Genre>> allGenres, List<Map<Long, Director>> allDirectors) {
-        if (allGenres != null) {
-            for (Map<Long, Genre> map : allGenres) {
-                for (Film film : allFilms) {
-                    if (map.containsKey(film.getId())) {
-                        film.getGenres().add(map.get(film.getId()));
-                    }
-                }
+    private Collection<Film> getFilmsWithAllFields(List<Film> allFilms, Map<Long, List<Genre>> allGenres, Map<Long, List<Director>> allDirectors) {
+        for (Film film : allFilms) {
+            if (allGenres != null) {
+                Optional<List<Genre>> genres = Optional.ofNullable(allGenres.get(film.getId()));
+                film.setGenres(genres.orElse(new ArrayList<>()));
+            }
+            if (allDirectors != null) {
+                Optional<List<Director>> directors = Optional.ofNullable(allDirectors.get(film.getId()));
+                film.setDirectors(directors.orElse(new ArrayList<>()));
             }
         }
-
-        if (allDirectors != null) {
-            for (Map<Long, Director> map : allDirectors) {
-                for (Film film : allFilms) {
-                    if (map.containsKey(film.getId())) {
-                        film.getDirectors().add(map.get(film.getId()));
-                    }
-                }
-            }
-        }
-
         return allFilms;
     }
 
@@ -236,8 +226,8 @@ public class FilmService {
 
     public Collection<Film> getPopular(Integer count, Integer genreId, Integer year) {
         List<Film> popularFilms = new ArrayList<>(filmStorage.getPopular(count, genreId, year));
-        List<Map<Long, Genre>> allGenres = filmGenresStorage.findAll();
-        List<Map<Long, Director>> allDirectors = filmDirectorsStorage.findAll();
+        Map<Long, List<Genre>> allGenres = filmGenresStorage.findAll();
+        Map<Long, List<Director>> allDirectors = filmDirectorsStorage.findAll();
 
         if (popularFilms.size() == 0) {
             return popularFilms;
@@ -280,9 +270,8 @@ public class FilmService {
 
     public Collection<Film> getFilmSearch(String query, String by) {
         List<Film> foundFilms = filmStorage.getFilmSearch(query, by);
-        List<Map<Long, Genre>> allGenres = filmGenresStorage.findAll();
-        List<Map<Long, Director>> allDirectors = filmDirectorsStorage.findAll();
+        Map<Long, List<Genre>> allGenres = filmGenresStorage.findAll();
+        Map<Long, List<Director>> allDirectors = filmDirectorsStorage.findAll();
         return getFilmsWithAllFields(foundFilms, allGenres, allDirectors);
     }
-
 }

@@ -136,14 +136,12 @@ public class UserService {
     public Collection<Film> getRecommendations(long id) {
         findUser(id);
         Collection<Film> recommendFilms = userStorage.getRecommendations(id);
-        List<Map<Long, Genre>> allGenres = filmGenresStorage.findAll();
+        Map<Long, List<Genre>> allGenres = filmGenresStorage.findAll();
 
         if (allGenres != null) {
-            for (Map<Long, Genre> map : allGenres) {
-                for (Film film : recommendFilms) {
-                    if (map.containsKey(film.getId())) {
-                        film.getGenres().add(map.get(film.getId()));
-                    }
+            for (Film film : recommendFilms) {
+                if (allGenres.containsKey(film.getId())) {
+                    film.setGenres(allGenres.get(film.getId()));
                 }
             }
         }
