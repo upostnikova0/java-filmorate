@@ -84,18 +84,19 @@ public class FilmDirectorsDbStorage implements FilmDirectorsStorage {
     }
 
     @Override
-    public List<Map<Long, Director>> findAll() {
+    public Map<Long, List<Director>> findAll() {
         String sql = "SELECT * FROM FILM_DIRECTORS JOIN DIRECTORS " +
                 "ON FILM_DIRECTORS.DIRECTOR_ID = DIRECTORS.DIRECTOR_ID ";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> {
-            Map<Long, Director> result = new LinkedHashMap<>();
-            result.put(rs.getLong("film_id"),
-                    Director.builder()
-                            .id(rs.getLong("director_id"))
-                            .name(rs.getString("director_name"))
-                            .build());
+        Map<Long, List<Director>> result = new LinkedHashMap<>();
+        jdbcTemplate.query(sql, (rs, rowNum) -> {
+            result.putIfAbsent(rs.getLong("film_id"), new ArrayList<>());
+            result.get(rs.getLong("film_id")).add(Director.builder()
+                    .id(rs.getLong("director_id"))
+                    .name(rs.getString("director_name"))
+                    .build());
             return result;
         });
+        return result;
     }
 
     @Override

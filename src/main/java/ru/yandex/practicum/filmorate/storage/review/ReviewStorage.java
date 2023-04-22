@@ -14,7 +14,13 @@ public interface ReviewStorage {
 
     Optional<Review> findById(long id);
 
-    void addOrDeleteLikeOrDislike(long reviewId, long userId, String likeOrDislike, String requestMethod);
+    void addLike(long reviewId, long userId);
+
+    void addDislike(long reviewId, long userId);
+
+    void deleteLike(long reviewId, long userId);
+
+    void deleteDislike(long reviewId, long userId);
 
     List<Review> findByFilmIdOrAll(long filmId, int count);
 }
