@@ -1,8 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ReviewNotFoundException;
 import ru.yandex.practicum.filmorate.model.Event;
@@ -14,24 +13,15 @@ import ru.yandex.practicum.filmorate.storage.review.ReviewStorage;
 
 import java.util.List;
 
+
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class ReviewService {
     private final ReviewStorage reviewStorage;
     private final EventStorage eventStorage;
     private final FilmService filmService;
     private final UserService userService;
-
-    @Autowired
-    public ReviewService(@Qualifier("reviewDbStorage") ReviewStorage reviewStorage,
-                         @Qualifier("eventDbStorage") EventStorage eventStorage,
-                         FilmService filmService,
-                         UserService userService) {
-        this.reviewStorage = reviewStorage;
-        this.eventStorage = eventStorage;
-        this.filmService = filmService;
-        this.userService = userService;
-    }
 
     public Review create(Review review) {
         checkUserAndFilmIsExists(review);
@@ -82,6 +72,26 @@ public class ReviewService {
 
             reviewStorage.delete(reviewId);
         }
+    }
+
+    public void addLike(long reviewId, long userId) {
+        findById(reviewId);
+        reviewStorage.addLike(reviewId, userId);
+    }
+
+    public void addDislike(long reviewId, long userId) {
+        findById(reviewId);
+        reviewStorage.addDislike(reviewId, userId);
+    }
+
+    public void deleteLike(long reviewId, long userId) {
+        findById(reviewId);
+        reviewStorage.deleteLike(reviewId, userId);
+    }
+
+    public void deleteDislike(long reviewId, long userId) {
+        findById(reviewId);
+        reviewStorage.deleteDislike(reviewId, userId);
     }
 
     public List<Review> findByFilmIdOrAll(long filmId, int count) {

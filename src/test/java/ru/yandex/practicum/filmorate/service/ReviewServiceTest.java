@@ -135,6 +135,7 @@ public class ReviewServiceTest {
     @Test
     void update() {
         reviewService.create(review1);
+
         Review forUpdate = Review.builder()
                 .reviewId(1L)
                 .content("UPDATED KLIM SSANICH")
@@ -151,7 +152,7 @@ public class ReviewServiceTest {
         assertEquals(true, updatedReview.getIsPositive(), "Incorrect isPositive update");
         assertEquals(3L, updatedReview.getFilmId(), "This field shouldn't be updated!");
         assertEquals(1L, updatedReview.getUserId(), "This field shouldn't be updated!");
-        assertEquals(8841, updatedReview.getUseful(), "This field shouldn't be updated!");
+        assertEquals(0, updatedReview.getUseful(), "This field shouldn't be updated!");
     }
 
     @Test
@@ -165,43 +166,43 @@ public class ReviewServiceTest {
     void addLike() {
         reviewService.create(review1);
 
-        reviewService.addOrDeleteLikeOrDislike(1L, 2L, "like", "put");
+        reviewService.addLike(1L, 2L);
         Review foundReview = reviewService.findById(1L);
 
         assertEquals(1, foundReview.getUseful(), "Incorrect Useful updated");
 
         assertThrows(DuplicateKeyException.class,
-                () -> reviewService.addOrDeleteLikeOrDislike(1L, 2L, "like", "put"));
+                () -> reviewService.addLike(1L, 2L));
     }
 
     @Test
     void addDislike() {
         reviewService.create(review1);
 
-        reviewService.addOrDeleteLikeOrDislike(1L, 2L, "dislike", "put");
+        reviewService.addDislike(1L, 2L);
         Review foundReview = reviewService.findById(1L);
 
         assertEquals(-1, foundReview.getUseful(), "Incorrect Useful updated");
 
         assertThrows(DuplicateKeyException.class,
-                () -> reviewService.addOrDeleteLikeOrDislike(1L, 2L, "dislike", "put"));
+                () -> reviewService.addDislike(1L, 2L));
     }
 
     @Test
     void deleteLike() {
         reviewService.create(review1);
 
-        reviewService.addOrDeleteLikeOrDislike(1L, 2L, "like", "delete");
+        reviewService.deleteLike(1L, 2L);
         Review foundReview = reviewService.findById(1L);
 
         assertEquals(0, foundReview.getUseful(), "Incorrect Useful updated");
 
-        reviewService.addOrDeleteLikeOrDislike(1L, 2L, "like", "put");
+        reviewService.addLike(1L, 2L);
         foundReview = reviewService.findById(1L);
 
         assertEquals(1, foundReview.getUseful(), "Incorrect Useful updated");
 
-        reviewService.addOrDeleteLikeOrDislike(1L, 2L, "like", "delete");
+        reviewService.deleteLike(1L, 2L);
         foundReview = reviewService.findById(1L);
 
         assertEquals(0, foundReview.getUseful(), "Incorrect Useful updated");
@@ -211,17 +212,17 @@ public class ReviewServiceTest {
     void deleteDislike() {
         reviewService.create(review1);
 
-        reviewService.addOrDeleteLikeOrDislike(1L, 2L, "dislike", "delete");
+        reviewService.deleteDislike(1L, 2L);
         Review foundReview = reviewService.findById(1L);
 
         assertEquals(0, foundReview.getUseful(), "Incorrect Useful updated");
 
-        reviewService.addOrDeleteLikeOrDislike(1L, 2L, "dislike", "put");
+        reviewService.addDislike(1L, 2L);
         foundReview = reviewService.findById(1L);
 
         assertEquals(-1, foundReview.getUseful(), "Incorrect Useful updated");
 
-        reviewService.addOrDeleteLikeOrDislike(1L, 2L, "dislike", "delete");
+        reviewService.deleteDislike(1L, 2L);
         foundReview = reviewService.findById(1L);
 
         assertEquals(0, foundReview.getUseful(), "Incorrect Useful updated");
@@ -230,14 +231,14 @@ public class ReviewServiceTest {
     @Test
     void findByFilmIdOrAll() {
         reviewService.create(review1);
-        reviewService.addOrDeleteLikeOrDislike(1L, 2L, "like", "put");
-        reviewService.addOrDeleteLikeOrDislike(1L, 3L, "dislike", "put");
+        reviewService.addLike(1L, 2L);
+        reviewService.addDislike(1L, 3L);
 
         reviewService.create(review2);
-        reviewService.addOrDeleteLikeOrDislike(2L, 2L, "like", "put");
+        reviewService.addLike(2L, 2L);
 
         reviewService.create(review3);
-        reviewService.addOrDeleteLikeOrDislike(3L, 3L, "dislike", "put");
+        reviewService.addDislike(3L, 3L);
         reviewService.create(review4);
 
         List<Review> expected = new ArrayList<>();
