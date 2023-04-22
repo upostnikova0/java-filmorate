@@ -24,6 +24,7 @@ public class Film {
     @Positive
     private Long duration;
     private Mpa mpa;
+    private Long rating;
     private boolean deleted;
     private List<Genre> genres;
     private Set<Long> likes;
