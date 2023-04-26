@@ -6,7 +6,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.enums.EventType;
+import ru.yandex.practicum.filmorate.model.enums.OperationType;
+import ru.yandex.practicum.filmorate.storage.event.EventStorage;
+import ru.yandex.practicum.filmorate.storage.filmgenres.FilmGenresStorage;
 import ru.yandex.practicum.filmorate.storage.friends.FriendStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
@@ -14,17 +21,25 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
 public class UserService {
-    protected final UserStorage userStorage;
+    private final UserStorage userStorage;
     private final FriendStorage friendStorage;
+    private final EventStorage eventStorage;
+    private final FilmGenresStorage filmGenresStorage;
 
     @Autowired
-    public UserService(@Qualifier("userDbStorage") UserStorage userStorage, @Qualifier("friendDbStorage") FriendStorage friendStorage) {
+    public UserService(@Qualifier("userDbStorage") UserStorage userStorage,
+                       @Qualifier("friendDbStorage") FriendStorage friendStorage,
+                       @Qualifier("eventDbStorage") EventStorage eventStorage,
+                       @Qualifier("filmGenresDbStorage") FilmGenresStorage filmGenresStorage) {
         this.userStorage = userStorage;
         this.friendStorage = friendStorage;
+        this.eventStorage = eventStorage;
+        this.filmGenresStorage = filmGenresStorage;
     }
 
     public User create(User user) {
@@ -46,10 +61,27 @@ public class UserService {
         return userStorage.update(user);
     }
 
+    public void remove(long userId) {
+        User user = findUser(userId);
+
+        userStorage.remove(user);
+    }
+
     public void addFriend(long userId, long friendId) {
         userStorage.findUser(userId);
         userStorage.findUser(friendId);
-        friendStorage.add(userId, friendId);
+
+        if (!friendStorage.isFriendsExist(userId, friendId)) {
+            friendStorage.add(userId, friendId);
+
+            eventStorage.add(Event.builder()
+                    .timestamp(System.currentTimeMillis())
+                    .userId(userId)
+                    .eventType(EventType.FRIEND)
+                    .operation(OperationType.ADD)
+                    .entityId(friendId)
+                    .build());
+        }
     }
 
     public Collection<User> getAllFriends(long id) {
@@ -60,7 +92,20 @@ public class UserService {
     public void deleteFriend(long id, long friendId) {
         userStorage.findUser(id);
         userStorage.findUser(friendId);
-        friendStorage.remove(id, friendId);
+
+        if (friendStorage.isFriendsExist(id, friendId)) {
+            log.info(String.format("Пользователь с ID %d удалил из друзей пользователя с ID %d", id, friendId));
+
+            friendStorage.remove(id, friendId);
+
+            eventStorage.add(Event.builder()
+                    .timestamp(System.currentTimeMillis())
+                    .userId(id)
+                    .eventType(EventType.FRIEND)
+                    .operation(OperationType.REMOVE)
+                    .entityId(friendId)
+                    .build());
+        }
     }
 
     public Collection<User> getCommonFriends(long id, long friendId) {
@@ -81,6 +126,26 @@ public class UserService {
         }
 
         return commonFriends;
+    }
+
+    public Collection<Event> getFeed(long id) {
+        findUser(id);
+        return eventStorage.findAll(id);
+    }
+
+    public Collection<Film> getRecommendations(long id) {
+        findUser(id);
+        Collection<Film> recommendFilms = userStorage.getRecommendations(id);
+        Map<Long, List<Genre>> allGenres = filmGenresStorage.findAll();
+
+        if (allGenres != null) {
+            for (Film film : recommendFilms) {
+                if (allGenres.containsKey(film.getId())) {
+                    film.setGenres(allGenres.get(film.getId()));
+                }
+            }
+        }
+        return recommendFilms;
     }
 
     private void checkValidity(User user) {

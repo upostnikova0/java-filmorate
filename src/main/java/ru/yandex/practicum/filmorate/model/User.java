@@ -3,7 +3,9 @@ package ru.yandex.practicum.filmorate.model;
 import lombok.Builder;
 import lombok.Data;
 
-import javax.validation.constraints.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Past;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,6 +22,7 @@ public class User {
     private String name;
     @Past
     private LocalDate birthday;
+    private boolean deleted;
 
     private Set<Long> friends;
 
@@ -29,6 +32,7 @@ public class User {
         values.put("login", login);
         values.put("name", name);
         values.put("birthday", birthday);
+        values.put("deleted", deleted);
         return values;
     }
 }

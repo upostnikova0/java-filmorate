@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.storage.friends;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -30,7 +31,7 @@ public class FriendDbStorage implements FriendStorage {
     public Collection<User> findAll(long id) {
         String sql = "SELECT FRIEND_ID, EMAIL, LOGIN, NAME, BIRTHDAY FROM USER_FRIENDS JOIN USERS U " +
                 "ON USER_FRIENDS.FRIEND_ID = U.USER_ID WHERE " +
-                "USER_FRIENDS.USER_ID = ?";
+                "USER_FRIENDS.USER_ID = ? AND u.deleted = false";
 
         return new ArrayList<>(
                 jdbcTemplate.query(sql, FriendDbStorage::friendMapper, id)
@@ -44,6 +45,13 @@ public class FriendDbStorage implements FriendStorage {
     }
 
     @Override
+    public boolean isFriendsExist(long userId, long friendId) {
+        String sql = "SELECT * FROM USER_FRIENDS WHERE user_id = ? AND friend_id = ?";
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(sql, userId, friendId);
+        return userRows.next();
+    }
+
+    @Override
     public Collection<Long> getCommonFriends(Long userId, Long friendId) {
         String sql = "SELECT FRIEND_ID FROM USER_FRIENDS WHERE USER_ID = ? " +
                 "AND FRIEND_ID IN (SELECT FRIEND_ID FROM USER_FRIENDS WHERE USER_ID = ?)";
@@ -53,9 +61,12 @@ public class FriendDbStorage implements FriendStorage {
         return commonFriendsId;
     }
 
-    public void removeAll(long id) {
+    @Override
+    public void removeAll(long userId) {
         String sql = "DELETE FROM USER_FRIENDS WHERE user_id = ?";
-        jdbcTemplate.update(sql, id);
+        jdbcTemplate.update(sql, userId);
+
+        log.info(String.format("Пользователь с ID %d больше не имеет дружественных связей.", userId));
     }
 
     public static User friendMapper(ResultSet rs, int rowNum) throws SQLException {

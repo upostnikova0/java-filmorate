@@ -2,6 +2,8 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -33,6 +35,11 @@ public class UserController {
         return userService.update(user);
     }
 
+    @DeleteMapping("/{userId}")
+    public void delete(@Valid @PathVariable("userId") Long userId) {
+        userService.remove(userId);
+    }
+
     @GetMapping
     public Collection<User> findAll() {
         return userService.findAll();
@@ -56,5 +63,15 @@ public class UserController {
     @GetMapping("/{id}/friends/common/{otherId}")
     public Collection<User> getCommonFriends(@PathVariable("id") Long userId, @PathVariable("otherId") Long friendId) {
         return userService.getCommonFriends(userId, friendId);
+    }
+
+    @GetMapping("{id}/feed")
+    public Collection<Event> getFeed(@PathVariable Long id) {
+        return userService.getFeed(id);
+    }
+
+    @GetMapping("{id}/recommendations")
+    public Collection<Film> getRecommendations(@PathVariable("id") Long id) {
+        return userService.getRecommendations(id);
     }
 }
